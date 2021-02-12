@@ -12,7 +12,7 @@ See http://www.boris.unito.it
 
 
 This repository contains the code for a future version of BORIS that will be based on the **MPV video player**.
-This work has begin in January 2021.
+This work has began in January 2021.
 
 For now please refer to https://github.com/olivierfriard/BORIS
 
