@@ -30,6 +30,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import pyqtSignal, QEvent
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+import matplotlib.ticker as mticker
 
 Y_MIN = 0
 Y_MAX = 20000
@@ -47,7 +48,7 @@ class Plot_waveform_RT(QWidget):
         try:
             wav = wave.open(wav_file, "r")
             frames = wav.readframes(-1)
-            signal = np.fromstring(frames, "Int16")
+            signal = np.fromstring(frames, dtype=np.int16)
             frame_rate = wav.getframerate()
             wav.close()
             return signal, frame_rate
@@ -198,8 +199,11 @@ class Plot_waveform_RT(QWidget):
             ax.plot(time_, self.sound_info[int(round((current_time - self.interval/2) * self.frame_rate, 0)):
                                                                int(round((current_time + self.interval/2) * self.frame_rate, 0))])
 
-            #ax.set_ylim(Y_MIN, Y_MAX)
 
+            #ax.set_xticklabels([str(round(current_time + w - self.interval / 2, 1)) for w in ax.get_xticks()])
+
+            ticks_loc = ax.get_xticks().tolist()
+            ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
             ax.set_xticklabels([str(round(current_time + w - self.interval / 2, 1)) for w in ax.get_xticks()])
 
             # cursor

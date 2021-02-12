@@ -2419,7 +2419,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     tmp_dir = self.ffmpeg_cache_dir if self.ffmpeg_cache_dir and os.path.isdir(self.ffmpeg_cache_dir) else tempfile.gettempdir()
 
                     wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
-                        urllib.parse.unquote(url2path(self.dw_player[0].mediaplayer.get_media().get_mrl())) + ".wav"
+                        self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"                        
                         ).name
 
                     self.spectro = plot_spectrogram_rt.Plot_spectrogram_RT()
@@ -2468,9 +2468,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                     tmp_dir = self.ffmpeg_cache_dir if self.ffmpeg_cache_dir and os.path.isdir(self.ffmpeg_cache_dir) else tempfile.gettempdir()
 
-                     wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
-                        urllib.parse.unquote(url2path(self.dw_player[0].mediaplayer.get_media().get_mrl())) + ".wav"
+                    wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
+                        self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"
                         ).name
+
 
                     self.waveform = plot_waveform_rt.Plot_waveform_RT()
 
@@ -2529,8 +2530,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 tmp_dir = self.ffmpeg_cache_dir if self.ffmpeg_cache_dir and os.path.isdir(self.ffmpeg_cache_dir) else tempfile.gettempdir()
 
-                 wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
-                    urllib.parse.unquote(url2path(self.dw_player[0].mediaplayer.get_media().get_mrl())) + ".wav"
+                wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
+                    self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"                    
                     ).name
 
                 self.waveform = plot_waveform_rt.Plot_waveform_RT()
@@ -3861,8 +3862,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             tmp_dir = self.ffmpeg_cache_dir if self.ffmpeg_cache_dir and os.path.isdir(self.ffmpeg_cache_dir) else tempfile.gettempdir()
 
-             wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
-                urllib.parse.unquote(url2path(self.dw_player[0].mediaplayer.get_media().get_mrl())) + ".wav"
+            wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
+                self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"
                 ).name
 
             if not wav_file_path.is_file():
@@ -3900,8 +3901,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             tmp_dir = self.ffmpeg_cache_dir if self.ffmpeg_cache_dir and os.path.isdir(self.ffmpeg_cache_dir) else tempfile.gettempdir()
 
-             wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
-                urllib.parse.unquote(url2path(self.dw_player[0].mediaplayer.get_media().get_mrl())) + ".wav"
+            wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
+                self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"                
                 ).name
 
             if not wav_file_path.is_file():
@@ -8763,13 +8764,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         About dialog
         """
 
-        programs_versions = ["VLC media player"]
-        from boris.vlc import libvlc_get_version, plugin_path
-        programs_versions.append(f"version {bytes_to_str(libvlc_get_version())}")
-        
-        #if plugin_path:
-        programs_versions.append(f"VLC plugin path: {plugin_path}")
+        programs_versions = ["MPV media player"]
 
+        
         # ffmpeg
         if self.ffmpeg_bin == "ffmpeg" and sys.platform.startswith("linux"):
             ffmpeg_true_path = subprocess.getoutput("which ffmpeg")
