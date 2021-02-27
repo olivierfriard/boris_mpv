@@ -46,10 +46,9 @@ class Clickable_label(QLabel):
         label clicked
         """
 
-        logging.debug("mousepress event: label clicked")
+        logging.debug(f"mousepress event: label {self.id_} clicked")
 
         self.mouse_pressed_signal.emit(self.id_, event)
-
 
 
 '''
@@ -130,9 +129,7 @@ class Video_frame(QFrame):
 class DW2(QDockWidget):
 
     key_pressed_signal = pyqtSignal(QEvent)
-
     volume_slider_moved_signal = pyqtSignal(int, int)
-
     view_signal = pyqtSignal(int, str, int)
 
     def __init__(self, id_, parent=None):
@@ -154,6 +151,7 @@ class DW2(QDockWidget):
                               log_handler=None,
                               loglevel="debug")
 
+        self.player.screenshot_format = "png"
         self.hlayout.addWidget(self.videoframe)
         
         self.volume_slider = QSlider(Qt.Vertical, self)
@@ -165,7 +163,6 @@ class DW2(QDockWidget):
         self.hlayout.addWidget(self.volume_slider)
 
         #self.docked_widget.setLayout(self.hlayout)
-
         
         self.stack1.setLayout(self.hlayout)
 
@@ -185,8 +182,8 @@ class DW2(QDockWidget):
         self.stack.addWidget(self.stack2)
 
         self.setWidget(self.stack)
+        self.stack.setCurrentIndex(0)
         
-
         #self.setWidget(self.docked_widget)
 
 
@@ -201,7 +198,6 @@ class DW2(QDockWidget):
         """
         emit signal when key pressed on dock widget
         """
-
         self.key_pressed_signal.emit(event)
 
 
@@ -209,5 +205,4 @@ class DW2(QDockWidget):
         """
         transmit signal received by video frame
         """
-
         self.view_signal.emit(self.id_, msg, button)
