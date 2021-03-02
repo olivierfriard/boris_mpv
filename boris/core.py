@@ -3339,9 +3339,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.checkForNewVersion = preferencesWindow.cbCheckForNewVersion.isChecked()
 
                 self.config_param[DISPLAY_SUBTITLES] = preferencesWindow.cb_display_subtitles.isChecked()
+
+                '''
                 st_track_number = 0 if self.config_param[DISPLAY_SUBTITLES] else -1
                 for player in self.dw_player:
                     player.mediaplayer.video_set_spu(st_track_number)
+                '''
 
                 self.pause_before_addevent = preferencesWindow.cb_pause_before_addevent.isChecked()
 
@@ -3804,14 +3807,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.dw_player[i].fps[mediaFile] = mediaFPS
 
                 self.dw_player[i].player.playlist_append(media_full_path)
-                '''
-                self.dw_player[i].player.pause = True
-                '''
+                #self.dw_player[i].player.loadfile(media_full_path)
+                #self.dw_player[i].player.pause = True
+                
 
+                
                 self.dw_player[i].player.wait_until_playing()
                 self.dw_player[i].player.pause = True
                 self.dw_player[i].player.wait_until_paused()
                 self.dw_player[i].player.seek(0, "absolute")
+                
 
 
             '''
