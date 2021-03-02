@@ -29,10 +29,10 @@ from PyQt5.QtGui import (QPalette, QColor)
 
 import logging
 
-'''
-class Click_label(QLabel):
+
+class Clickable_label(QLabel):
     """
-    QLabel class for visualiziong frames (frame-by-frame mode)
+    QLabel class for visualiziong frames for geometric measurments
     Label emits a signal when clicked
     """
     mouse_pressed_signal = pyqtSignal(int, QEvent)
@@ -46,10 +46,9 @@ class Click_label(QLabel):
         label clicked
         """
 
-        logging.debug("mousepress event: label clicked")
+        logging.debug(f"mousepress event: label {self.id_} clicked")
 
         self.mouse_pressed_signal.emit(self.id_, event)
-'''
 
 
 '''
@@ -130,9 +129,7 @@ class Video_frame(QFrame):
 class DW2(QDockWidget):
 
     key_pressed_signal = pyqtSignal(QEvent)
-
     volume_slider_moved_signal = pyqtSignal(int, int)
-
     view_signal = pyqtSignal(int, str, int)
 
     def __init__(self, id_, parent=None):
@@ -142,10 +139,10 @@ class DW2(QDockWidget):
         self.setWindowTitle(f"Player #{id_ + 1}")
         self.setObjectName(f"player{id_ + 1}")
 
+        self.stack1 = QWidget()
         self.hlayout = QHBoxLayout()
 
-        #self.videoframe = Video_frame()
-        self.docked_widget = QWidget(self)
+        #self.docked_widget = QWidget(self)
 
         self.videoframe = QWidget(self)
 
@@ -154,13 +151,7 @@ class DW2(QDockWidget):
                               log_handler=None,
                               loglevel="debug")
 
-        '''
-        self.videoframe.video_frame_signal.connect(self.view_signal_triggered)
-        self.palette = self.videoframe.palette()
-        self.palette.setColor(QPalette.Window, QColor(0, 0, 0))
-        self.videoframe.setPalette(self.palette)
-        self.videoframe.setAutoFillBackground(True)
-        '''
+        self.player.screenshot_format = "png"
         self.hlayout.addWidget(self.videoframe)
         
         self.volume_slider = QSlider(Qt.Vertical, self)
@@ -171,14 +162,13 @@ class DW2(QDockWidget):
 
         self.hlayout.addWidget(self.volume_slider)
 
-        self.docked_widget.setLayout(self.hlayout)
-
-        '''
+        #self.docked_widget.setLayout(self.hlayout)
+        
         self.stack1.setLayout(self.hlayout)
 
         self.stack2 = QWidget()
         self.hlayout2 = QHBoxLayout()
-        self.frame_viewer = Click_label(id_)
+        self.frame_viewer = Clickable_label(id_)
 
         self.frame_viewer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.frame_viewer.setAlignment(Qt.AlignCenter)
@@ -192,9 +182,9 @@ class DW2(QDockWidget):
         self.stack.addWidget(self.stack2)
 
         self.setWidget(self.stack)
-        '''
-
-        self.setWidget(self.docked_widget)
+        self.stack.setCurrentIndex(0)
+        
+        #self.setWidget(self.docked_widget)
 
 
     def volume_slider_moved(self):
@@ -208,7 +198,6 @@ class DW2(QDockWidget):
         """
         emit signal when key pressed on dock widget
         """
-
         self.key_pressed_signal.emit(event)
 
 
@@ -216,5 +205,4 @@ class DW2(QDockWidget):
         """
         transmit signal received by video frame
         """
-
         self.view_signal.emit(self.id_, msg, button)

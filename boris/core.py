@@ -52,6 +52,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import *
+from PIL.ImageQt import ImageQt
 
 from boris import behav_coding_map_creator
 from boris import behaviors_coding_map
@@ -260,6 +261,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     pj = dict(EMPTY_PROJECT)
     project = False
+    geometric_measurements_mode = False
 
     processes = []  # list of QProcess processes
     frames_cache = {}
@@ -485,7 +487,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.twEvents.setColumnCount(len(tw_events_fields))
         self.twEvents.setHorizontalHeaderLabels(tw_events_fields)
 
-        self.FFmpegGlobalFrame = 0
 
         self.config_param = INIT_PARAM
 
@@ -601,9 +602,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionPrevious.setEnabled(self.playerType == VLC)
         self.actionNext.setEnabled(self.playerType == VLC)
         self.actionSnapshot.setEnabled(self.playerType == VLC)
+
         self.actionFrame_by_frame.setEnabled(self.playerType == VLC)
-        self.actionFrame_backward.setEnabled(flagObs and self.frame_mode)
-        self.actionFrame_forward.setEnabled(flagObs and self.frame_mode)
+        self.actionFrame_by_frame.setVisible(False)
+
+        #self.actionFrame_backward.setEnabled(flagObs and self.frame_mode)
+        #self.actionFrame_forward.setEnabled(flagObs and self.frame_mode)
 
         for w in [self.actionCloseObs, self.actionCurrent_Time_Budget,
                   self.actionPlot_current_observation, self.actionFind_in_current_obs]:
@@ -619,7 +623,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionRemove_image_overlay.setEnabled(self.playerType == VLC)
         '''
         # geometric measurements
-        self.actionDistance.setEnabled(flagObs and self.frame_mode)
+        #self.actionDistance.setEnabled(flagObs and self.frame_mode)
         self.actionCoding_pad.setEnabled(flagObs)
         self.actionSubjects_pad.setEnabled(flagObs)
         self.actionBehaviors_coding_map.setEnabled(flagObs)
@@ -3422,9 +3426,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         read next frame and update image
         frames are read from disk or from memory
         """
-
-
-            # redraw measurements from previous frames
+    '''
+    def redraw_measurements(self):
+        '''
+        redraw measurements from previous frames
+        '''
+        for idx, dw in enumerate(self.dw_player):
             if hasattr(self, "measurement_w") and self.measurement_w is not None and self.measurement_w.isVisible():
                 if self.measurement_w.cbPersistentMeasurements.isChecked():
 
@@ -3432,31 +3439,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                     for frame in self.measurement_w.draw_mem:
 
-                        if frame == self.FFmpegGlobalFrame + 1:
+                        if frame == dw.player.estimated_frame_number + 1:
                             elementsColor = ACTIVE_MEASUREMENTS_COLOR
                         else:
                             elementsColor = PASSIVE_MEASUREMENTS_COLOR
 
                         for element in self.measurement_w.draw_mem[frame]:
-                            if element[0] == i:
+                            if element[0] == idx:
                                 if element[1] == "point":
                                     x, y = element[2:]
-                                    self.draw_point(x, y, elementsColor, n_player=i)
+                                    self.draw_point(x, y, elementsColor, n_player=idx)
 
                                 if element[1] == "line":
                                     x1, y1, x2, y2 = element[2:]
-                                    self.draw_line(x1, y1, x2, y2, elementsColor, n_player=i)
-                                    self.draw_point(x1, y1, elementsColor, n_player=i)
-                                    self.draw_point(x2, y2, elementsColor, n_player=i)
+                                    self.draw_line(x1, y1, x2, y2, elementsColor, n_player=idx)
+                                    self.draw_point(x1, y1, elementsColor, n_player=idx)
+                                    self.draw_point(x2, y2, elementsColor, n_player=idx)
                                 if element[1] == "angle":
                                     x1, y1 = element[2][0]
                                     x2, y2 = element[2][1]
                                     x3, y3 = element[2][2]
-                                    self.draw_line(x1, y1, x2, y2, elementsColor, n_player=i)
-                                    self.draw_line(x1, y1, x3, y3, elementsColor, n_player=i)
-                                    self.draw_point(x1, y1, elementsColor, n_player=i)
-                                    self.draw_point(x2, y2, elementsColor, n_player=i)
-                                    self.draw_point(x3, y3, elementsColor, n_player=i)
+                                    self.draw_line(x1, y1, x2, y2, elementsColor, n_player=idx)
+                                    self.draw_line(x1, y1, x3, y3, elementsColor, n_player=idx)
+                                    self.draw_point(x1, y1, elementsColor, n_player=idx)
+                                    self.draw_point(x2, y2, elementsColor, n_player=idx)
+                                    self.draw_point(x3, y3, elementsColor, n_player=idx)
                                 if element[1] == "polygon":
                                     polygon = QPolygon()
                                     for point in element[2]:
@@ -3466,19 +3473,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     painter.setPen(QColor(elementsColor))
                                     painter.drawPolygon(polygon)
                                     painter.end()
-                                    self.dw_player[i].frame_viewer.update()
+                                    dw.frame_viewer.update()
                 else:
                     self.measurement_w.draw_mem = []
 
-    '''  
-
-    def close_measurement_widget(self):
-        self.measurement_w.close()
-
-
-    def clear_measurements(self):
-        if self.FFmpegGlobalFrame > 1:
-            self.FFmpegGlobalFrame -= 1
+    def extract_frame(self, dw):
+        '''
+        extract frame from video and visualize it in frame_viewer
+        '''
+        qim = ImageQt(dw.player.screenshot_raw())
+        pixmap = QPixmap.fromImage(qim)
+        dw.frame_viewer.setPixmap(pixmap.scaled(dw.frame_viewer.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
 
     def geometric_measurements(self):
@@ -3486,12 +3491,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         active the geometric measurement widget
         """
 
+        def close_measurement_widget():
+            self.geometric_measurements_mode = False
+            for n_player, dw in enumerate(self.dw_player):
+                dw.frame_viewer.clear()
+                dw.stack.setCurrentIndex(0)
+                dw.setWindowTitle(f"Player #{n_player + 1}")
+            self.measurement_w.close()
+
+        def clear_measurements():
+            '''
+            if self.FFmpegGlobalFrame > 1:
+                self.FFmpegGlobalFrame -= 1
+            '''
+            pass
+
         self.measurement_w = measurement_widget.wgMeasurement()
         self.measurement_w.draw_mem = {}
         self.measurement_w.setWindowFlags(Qt.WindowStaysOnTopHint)
-        self.measurement_w.closeSignal.connect(self.close_measurement_widget)
-        self.measurement_w.clearSignal.connect(self.clear_measurements)
+        self.measurement_w.closeSignal.connect(close_measurement_widget)
+        self.measurement_w.clearSignal.connect(clear_measurements)
         self.measurement_w.show()
+        self.geometric_measurements_mode = True
+
+        for n_player, dw in enumerate(self.dw_player):
+            dw.setWindowTitle("geometric measurements")
+            dw.stack.setCurrentIndex(1)
+            self.extract_frame(dw)
 
 
     def draw_point(self, x, y, color, n_player=0):
@@ -3522,20 +3548,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dw_player[n_player].frame_viewer.update()
 
 
-    def getPoslbFFmpeg(self, n_player, event):
+    def image_clicked(self, n_player, event):
         """
-        geometric measurements on frame
+        geometric measurements on image
 
         Args:
             n_player (int): id of clicked player
             event (Qevent): event (mousepressed)
         """
 
+        logging.debug(f"function image_clicked")
+
         if self.mem_player != -1 and n_player != self.mem_player:
             self.mem_player = n_player
             return
 
         self.mem_player = n_player
+        current_frame = self.dw_player[n_player].player.estimated_frame_number
         if hasattr(self, "measurement_w") and self.measurement_w is not None and self.measurement_w.isVisible():
             x, y = event.pos().x(), event.pos().y()
 
@@ -3547,14 +3576,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.measurement_w.rbPoint.isChecked():
                 if event.button() == 1:   # left
                     self.draw_point(x, y, ACTIVE_MEASUREMENTS_COLOR, n_player)
-                    if self.FFmpegGlobalFrame in self.measurement_w.draw_mem:
-                        self.measurement_w.draw_mem[self.FFmpegGlobalFrame].append([n_player, "point", x, y])
+                    if current_frame in self.measurement_w.draw_mem:
+                        self.measurement_w.draw_mem[current_frame].append([n_player, "point", x, y])
                     else:
-                        self.measurement_w.draw_mem[self.FFmpegGlobalFrame] = [[n_player, "point", x, y]]
+                        self.measurement_w.draw_mem[current_frame] = [[n_player, "point", x, y]]
 
-                    self.measurement_w.pte.appendPlainText((f"Time: {self.getLaps()}\tPlayer: {n_player + 1}\t"
-                                                            f"Frame: {self.FFmpegGlobalFrame}\tPoint: {x},{y}"))
-
+                    self.measurement_w.pte.appendPlainText((f"Time: {self.getLaps():.3f}\tPlayer: {n_player + 1}\t"
+                                                            f"Frame: {current_frame}\tPoint: {x},{y}"))
 
             # distance
             if self.measurement_w.rbDistance.isChecked():
@@ -3566,10 +3594,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.draw_point(x, y, ACTIVE_MEASUREMENTS_COLOR, n_player)
                     self.draw_line(self.memx, self.memy, x, y, ACTIVE_MEASUREMENTS_COLOR, n_player)
 
-                    if self.FFmpegGlobalFrame in self.measurement_w.draw_mem:
-                        self.measurement_w.draw_mem[self.FFmpegGlobalFrame].append([n_player, "line", self.memx, self.memy, x, y])
+                    if current_frame in self.measurement_w.draw_mem:
+                        self.measurement_w.draw_mem[current_frame].append([n_player, "line", self.memx, self.memy, x, y])
                     else:
-                        self.measurement_w.draw_mem[self.FFmpegGlobalFrame] = [[n_player, "line", self.memx, self.memy, x, y]]
+                        self.measurement_w.draw_mem[current_frame] = [[n_player, "line", self.memx, self.memy, x, y]]
 
                     d = ((x - self.memx) ** 2 + (y - self.memy) ** 2) ** 0.5
                     try:
@@ -3580,7 +3608,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                              QMessageBox.Ok | QMessageBox.Default, QMessageBox.NoButton)
 
                     self.measurement_w.pte.appendPlainText((f"Time: {self.getLaps()}\tPlayer: {n_player + 1}\t"
-                                                            f"Frame: {self.FFmpegGlobalFrame}\tDistance: {round(d, 1)}"))
+                                                            f"Frame: {current_frame}\tDistance: {round(d, 1)}"))
                     self.measurement_w.flagSaved = False
                     self.memx, self.memy = -1, -1
 
@@ -3599,13 +3627,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     if len(self.memPoints) == 3:
                         self.measurement_w.pte.appendPlainText(
                             (f"Time: {self.getLaps()}\tPlayer: {n_player + 1}\t"
-                             f"Frame: {self.FFmpegGlobalFrame}\t"
+                             f"Frame: {current_frame}\t"
                              f"Angle: {round(angle(self.memPoints[0], self.memPoints[1], self.memPoints[2]), 1)}"))
                         self.measurement_w.flagSaved = False
-                        if self.FFmpegGlobalFrame in self.measurement_w.draw_mem:
-                            self.measurement_w.draw_mem[self.FFmpegGlobalFrame].append([n_player, "angle", self.memPoints])
+                        if current_frame in self.measurement_w.draw_mem:
+                            self.measurement_w.draw_mem[current_frame].append([n_player, "angle", self.memPoints])
                         else:
-                            self.measurement_w.draw_mem[self.FFmpegGlobalFrame] = [[n_player, "angle", self.memPoints]]
+                            self.measurement_w.draw_mem[current_frame] = [[n_player, "angle", self.memPoints]]
 
                         self.memPoints = []
 
@@ -3626,10 +3654,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                    self.memPoints[0][0], self.memPoints[0][1], ACTIVE_MEASUREMENTS_COLOR, n_player)
                     a = polygon_area(self.memPoints)
 
-                    if self.FFmpegGlobalFrame in self.measurement_w.draw_mem:
-                        self.measurement_w.draw_mem[self.FFmpegGlobalFrame].append([n_player, "polygon", self.memPoints])
+                    if current_frame in self.measurement_w.draw_mem:
+                        self.measurement_w.draw_mem[current_frame].append([n_player, "polygon", self.memPoints])
                     else:
-                        self.measurement_w.draw_mem[self.FFmpegGlobalFrame] = [[n_player, "polygon", self.memPoints]]
+                        self.measurement_w.draw_mem[current_frame] = [[n_player, "polygon", self.memPoints]]
                     try:
                         a = a / (float(self.measurement_w.lePx.text())**2) * float(self.measurement_w.leRef.text())**2
                     except Exception:
@@ -3638,7 +3666,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                              QMessageBox.Ok | QMessageBox.Default, QMessageBox.NoButton)
 
                     self.measurement_w.pte.appendPlainText((f"Time: {self.getLaps()}\tPlayer: {n_player + 1}\t"
-                                                            f"Frame: {self.FFmpegGlobalFrame}\tArea: {round(a, 1)}"))
+                                                            f"Frame: {current_frame}\tArea: {round(a, 1)}"))
                     self.memPoints = []
 
         else:  # no measurements
@@ -3711,9 +3739,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.dw_player[i].setVisible(True)
 
+            # for receiving mouse event from frame viewer
+            self.dw_player[i].frame_viewer.mouse_pressed_signal.connect(self.image_clicked)
             # for receiving key event from dock widget
             self.dw_player[i].key_pressed_signal.connect(self.signal_from_widget)
-            
             # for receiving event from volume slider
             self.dw_player[i].volume_slider_moved_signal.connect(self.set_volume)
 
@@ -8181,7 +8210,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if (str(n_player + 1) not in self.pj[OBSERVATIONS][self.observationId][FILE]
                 or not self.pj[OBSERVATIONS][self.observationId][FILE][str(n_player + 1)]):
                 continue
-            dw.player.command('frame-step')
+            dw.player.frame_step()
+
+            if self.geometric_measurements_mode:
+                self.extract_frame(dw)
+                '''
+                qim = ImageQt(dw.player.screenshot_raw())
+                pixmap = QPixmap.fromImage(qim)
+                dw.frame_viewer.setPixmap(pixmap.scaled(dw.frame_viewer.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                '''
+
+        if self.geometric_measurements_mode:
+            self.redraw_measurements()
+
+        self.timer_out()
+        self.actionPlay.setIcon(QIcon(":/play"))
+
 
     def previous_frame(self):
         """
@@ -8191,7 +8235,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if (str(n_player + 1) not in self.pj[OBSERVATIONS][self.observationId][FILE]
                 or not self.pj[OBSERVATIONS][self.observationId][FILE][str(n_player + 1)]):
                 continue
-            dw.player.command('frame-back-step')
+            dw.player.frame_back_step()
+
+            if self.geometric_measurements_mode:
+                self.extract_frame(dw)
+
+        if self.geometric_measurements_mode:
+            self.redraw_measurements()
+
+        self.timer_out()
+        self.actionPlay.setIcon(QIcon(":/play"))
 
 
     def snapshot(self):
@@ -8203,6 +8256,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.pj[OBSERVATIONS][self.observationId][TYPE] in [MEDIA]:
 
             if self.playerType == VLC:
+                '''
                 if self.playMode == FFMPEG:
                     for n_player, player in enumerate(self.dw_player):
                         if (str(n_player + 1) not in self.pj[OBSERVATIONS][self.observationId][FILE]
@@ -8216,8 +8270,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 player.frame_viewer.pixmap().save(snapshot_file_path)
                                 self.statusbar.showMessage(f"Snapshot player #1 saved in {snapshot_file_path}", 0)
                                 break
-
-                elif self.playMode == MPV:
+                '''
+                if self.playMode == MPV:
 
                     for i, player in enumerate(self.dw_player):
                         if (str(i + 1) in self.pj[OBSERVATIONS][self.observationId][FILE] and
@@ -9154,7 +9208,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.dw_player[0].player.time_pos is not None:
 
                 msg = (f"{current_media_name}: <b>{self.convertTime(current_media_time_pos)} / "
-                        f"{self.convertTime(current_media_duration)}</b>")
+                        f"{self.convertTime(current_media_duration)}</b> frame: {self.dw_player[0].player.estimated_frame_number}")
 
                 if self.dw_player[0].player.playlist_count > 1:
                     msg += (f"<br>Total: <b>{self.convertTime(cumulative_time_pos)} / "
