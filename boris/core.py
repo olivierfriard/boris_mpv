@@ -3656,6 +3656,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         ok, msg = project_functions.check_if_media_available(self.pj[OBSERVATIONS][self.observationId],
                                                              self.projectFileName)
+
+        for dw in [self.dwEthogram, self.dwSubjects, self.dwObservations]:
+            dw.setVisible(True)
+
         if not ok:
             QMessageBox.critical(self, programName,
                                  (f"{msg}<br><br>The observation will be opened in VIEW mode.<br>"
@@ -3664,17 +3668,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                   "to log events or copy media file in the BORIS project directory."),
                                  QMessageBox.Ok | QMessageBox.Default,
                                  QMessageBox.NoButton)
-
             self.playerType = VIEWER
             self.playMode = ""
-            for dw in [self.dwEthogram, self.dwSubjects, self.dwObservations]:
-                dw.setVisible(True)
             return True
 
         self.playerType, self.playMode = VLC, MPV
         self.fps = 0
-        for dw in [self.dwEthogram, self.dwSubjects, self.dwObservations]:
-            dw.setVisible(True)
 
         self.w_obs_info.setVisible(True)
         self.w_live.setVisible(False)
@@ -3775,22 +3774,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.dw_player[i].media_durations.append(int(mediaLength))
                 self.dw_player[i].fps[mediaFile] = mediaFPS
 
-                '''
-                self.dw_player[i].media_list.add_media(media)
-                '''
                 self.dw_player[i].player.playlist_append(media_full_path)
+                '''
                 self.dw_player[i].player.pause = True
+                '''
+
+                self.dw_player[i].player.wait_until_playing()
+                self.dw_player[i].player.pause = True
+                self.dw_player[i].player.wait_until_paused()
+                self.dw_player[i].player.seek(0, "absolute")
+
 
             '''
-            # add media list to media player list
-            self.dw_player[i].mediaListPlayer.set_media_list(self.dw_player[i].media_list)
-
-            if sys.platform.startswith("linux"):  # for Linux using the X Server
-                self.dw_player[i].mediaplayer.set_xwindow(self.dw_player[i].videoframe.winId())
-            elif sys.platform == "win32":  # for Windows
-                self.dw_player[i].mediaplayer.set_hwnd(self.dw_player[i].videoframe.winId())
-            elif sys.platform == "darwin":  # for MacOS
-                self.dw_player[i].mediaplayer.set_nsobject(int(self.dw_player[i].videoframe.winId()))
 
             # show first frame of video
             logging.debug(f"playing media #0")
@@ -3803,7 +3798,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     if self.dw_player[i].mediaListPlayer.get_state() in [self.vlc_playing, self.vlc_ended]:
                         break
 
-            self.dw_player[i].mediaListPlayer.pause()
 
             if sys.platform != "darwin":
                 while True:
@@ -3821,21 +3815,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
              self.dw_player[i].videoframe.v_resolution) = self.dw_player[i].mediaplayer.video_get_size(0)
 
 
-        self.FFmpegTimer = QTimer(self)
-        self.FFmpegTimer.timeout.connect(self.ffmpeg_timer_out)
-        try:
-            #self.FFmpegTimerTick = int(1000 / self.fps)
-            fps_list = list(set(self.dw_player[0].fps.values()))
-            if not fps_list:
-                raise Exception
-            self.FFmpegTimerTick = round(1000 / fps_list[0])
-
-        except Exception:
-            # default value 40 ms (25 frames / s)
-            logging.error(f"FPS not available. Set ffmpegtimer to default value (40 ms)")
-            self.FFmpegTimerTick = 40
-
-        self.FFmpegTimer.setInterval(self.FFmpegTimerTick)
         '''
 
         self.menu_options()
@@ -3848,7 +3827,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.timer_out()
 
-        self.lbSpeed.setText(f"x{self.play_rate:.3f}")
+        self.lbSpeed.setText(f"Player rate: x{self.play_rate:.3f}")
 
         ''' 2019-12-12
         if window.focusWidget():
@@ -9172,7 +9151,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # update media info
             msg = ""
-            if self.dw_player[0].player.time_pos:
+            if self.dw_player[0].player.time_pos is not None:
 
                 msg = (f"{current_media_name}: <b>{self.convertTime(current_media_time_pos)} / "
                         f"{self.convertTime(current_media_duration)}</b>")
