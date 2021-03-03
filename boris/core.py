@@ -3811,11 +3811,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 #self.dw_player[i].player.pause = True
                 
 
-                
-                self.dw_player[i].player.wait_until_playing()
-                self.dw_player[i].player.pause = True
-                self.dw_player[i].player.wait_until_paused()
-                self.dw_player[i].player.seek(0, "absolute")
+            self.dw_player[i].player.playlist_pos = 0
+            self.dw_player[i].player.wait_until_playing()
+            self.dw_player[i].player.pause = True
+            self.dw_player[i].player.wait_until_paused()
+            self.dw_player[i].player.seek(0, "absolute")
                 
 
 
