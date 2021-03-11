@@ -53,6 +53,9 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.setObjectName("verticalLayout_10")
         self.verticalLayout_9 = QtWidgets.QVBoxLayout()
         self.verticalLayout_9.setObjectName("verticalLayout_9")
+        self.lb_player_status = QtWidgets.QLabel(self.w_obs_info)
+        self.lb_player_status.setObjectName("lb_player_status")
+        self.verticalLayout_9.addWidget(self.lb_player_status)
         self.lb_current_media_time = QtWidgets.QLabel(self.w_obs_info)
         self.lb_current_media_time.setWordWrap(True)
         self.lb_current_media_time.setObjectName("lb_current_media_time")
@@ -676,6 +679,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "BORIS"))
+        self.lb_player_status.setText(_translate("MainWindow", "lb_player_status"))
         self.lb_current_media_time.setText(_translate("MainWindow", "lb_current_media_time"))
         self.lbFocalSubject.setText(_translate("MainWindow", "lbFocalSubject"))
         self.lbCurrentStates.setText(_translate("MainWindow", "lbCurrentStates"))

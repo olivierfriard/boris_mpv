@@ -73,6 +73,13 @@
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_9">
              <item>
+              <widget class="QLabel" name="lb_player_status">
+               <property name="text">
+                <string>lb_player_status</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QLabel" name="lb_current_media_time">
                <property name="text">
                 <string>lb_current_media_time</string>
