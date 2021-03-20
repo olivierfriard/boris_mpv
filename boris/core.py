@@ -22,7 +22,7 @@ This file is part of BORIS.
 
 import datetime
 
-import hashlib
+from math import log2
 import json
 import logging
 import os
@@ -266,9 +266,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     time_observer_signal = pyqtSignal(float)
 
     processes = []  # list of QProcess processes
-    frames_cache = {}
-    frames_buffer = QBuffer()
-    frames_buffer.open(QIODevice.ReadWrite)
 
     saved_state = None
 
@@ -572,22 +569,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionJumpBackward.setEnabled(self.playerType == VLC)
         self.actionJumpTo.setEnabled(self.playerType == VLC)
 
-        if sys.platform == "darwin":
-            self.menuZoom1.setEnabled(False)
-            self.menuZoom2.setEnabled(False)
-        else:
-            self.menuZoom1.setEnabled((self.playerType == VLC) and (self.playMode == VLC))
-            self.menuZoom2.setEnabled(False)
-            try:
-                # FIXME
-                zv = self.mediaplayer.video_get_scale()
-                self.actionZoom1_fitwindow.setChecked(zv == 0)
-                self.actionZoom1_1_1.setChecked(zv == 1)
-                self.actionZoom1_1_2.setChecked(zv == 0.5)
-                self.actionZoom1_1_4.setChecked(zv == 0.25)
-                self.actionZoom1_2_1.setChecked(zv == 2)
-            except Exception:
-                pass
+        self.menuZoom1.setEnabled((self.playerType == VLC) and (self.playMode == MPV))
+        self.menuZoom2.setEnabled(False)
+        '''
+        try:
+            # FIXME
+            zv = self.mediaplayer.video_get_scale()
+            self.actionZoom1_fitwindow.setChecked(zv == 0)
+            self.actionZoom1_1_1.setChecked(zv == 1)
+            self.actionZoom1_1_2.setChecked(zv == 0.5)
+            self.actionZoom1_1_4.setChecked(zv == 0.25)
+            self.actionZoom1_2_1.setChecked(zv == 2)
+        except Exception:
+            pass
+        '''
 
         # toolbar
         self.actionPlay.setEnabled(self.playerType == VLC)
@@ -3246,10 +3241,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 preferencesWindow.lb_memory_info.setText("Memory information not available")
 
             # frames buffer
-            preferencesWindow.lb_memory_info.setText((f"{preferencesWindow.lb_memory_info.text()} "
-                                                      f"<br>Frames buffer size {self.frames_buffer.size()/1024/1024:.1f} Mb"
-                                                     )
-                                                    )
+            preferencesWindow.lb_memory_info.setText(f"{preferencesWindow.lb_memory_info.text()}")
 
             preferencesWindow.sbFrameResize.setValue(self.frame_resize)
             mem_frame_resize = self.frame_resize
@@ -3696,11 +3688,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.w_obs_info.setVisible(True)
         self.w_live.setVisible(False)
 
-        
         font = QFont()
         font.setPointSize(15)
         self.lb_current_media_time.setFont(font)
-        
 
         # initialize video slider
         self.video_slider = QSlider(QtCore.Qt.Horizontal, self)
@@ -3812,6 +3802,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.dw_player[i].player.pause = True
             self.dw_player[i].player.wait_until_paused()
             self.dw_player[i].player.seek(0, "absolute")
+            # do not close when playing finished
+            self.dw_player[i].player.keep_open = True
+            self.dw_player[i].player.keep_open_pause = False
                 
 
         self.menu_options()
@@ -7927,10 +7920,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     continue
                 
                 
-                #logging.info(f"State: {player.mediaplayer.get_state()}")
                 logging.info(f"Video format: {dw.player.video_format}")
-                #logging.info("media.get_meta(0): {}".format(media.get_meta(0)))
-                #logging.info("Track: {}/{}".format(player.mediaplayer.video_get_track(), player.mediaplayer.video_get_track_count()))
                 logging.info(f"number of media in media list: {dw.player.playlist_count}")
                 logging.info(f"Current time position: {dw.player.time_pos}  duration: {dw.player.duration}")
 
@@ -7939,7 +7929,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 #logging.info("Rate: {}".format(player.mediaplayer.get_rate()))
                 logging.info(f"Video size: {dw.player.width}x{dw.player.height}  ratio: ")
 
-                #logging.info("Scale: {}".format(player.mediaplayer.video_get_scale()))
                 logging.info(f"Aspect ratio: {round(dw.player.width / dw.player.height, 3)}")
                 #logging.info("is seekable? {0}".format(player.mediaplayer.is_seekable()))
                 #logging.info("has_vout? {0}".format(player.mediaplayer.has_vout()))
@@ -8227,7 +8216,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         if (str(i + 1) in self.pj[OBSERVATIONS][self.observationId][FILE] and
                                 self.pj[OBSERVATIONS][self.observationId][FILE][str(i + 1)]):
 
-                            # current_media_path = url2path(player.mediaplayer.get_media().get_mrl())
                             p = pathlib.Path(self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"])
 
                             snapshot_file_path = str(p.parent / f"{p.stem}_{player.player.time_pos}.png")
@@ -8239,13 +8227,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         change video zoom
         """
+
+        '''
         QMessageBox.warning(self, programName, "Zoom not implemented!")
         '''
-        try:
-            self.dw_player[player - 1].mediaplayer.video_set_scale(zoom_value)
-        except Exception:
-            logging.warning("Zoom error")
+        if zoom_value == 0:
+            self.dw_player[player - 1].player.video_zoom = 0
+        else:
+            self.dw_player[player - 1].player.video_zoom = log2(zoom_value)
 
+        '''
         try:
             zv = self.dw_player[player - 1].mediaplayer.video_get_scale()
             self.actionZoom1_fitwindow.setChecked(zv == 0)
@@ -8884,19 +8875,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     sliderPos = self.video_slider.value() / (slider_maximum - 1)
                     videoPosition = sliderPos * self.dw_player[0].player.duration
                     self.dw_player[0].player.command('seek', str(videoPosition), 'absolute')
-                    #self.dw_player[0].player.set_time(int(videoPosition))
+
+                    '''
                     self.update_visualizations(scroll_slider=False)
+                    '''
 
-
-                '''
-                if self.playMode == FFMPEG:
-                    sliderPos = self.video_slider.value() / (slider_maximum - 1)
-                    media_position_s = sliderPos * self.dw_player[0].mediaplayer.get_length() / 1000
-                    frame_to_display = round(media_position_s * self.fps)
-                    logging.debug(f"video slider moved: Frame to display: {frame_to_display}")
-                    self.FFmpegGlobalFrame = frame_to_display - 1
-                    self.ffmpeg_timer_out()
-                '''
 
 
     def video_slider_sliderReleased(self):
@@ -9720,7 +9703,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     # cumulative time
                     mem_laps = sum(self.dw_player[n_player].media_durations[
                                    0:self.dw_player[n_player].player.playlist_pos]) + (0 if self.dw_player[n_player].player.time_pos is None else self.dw_player[n_player].player.time_pos * 1000)
-                                #self.dw_player[n_player].mediaplayer.get_time() / 1000
                     
                     return Decimal(round(mem_laps/1000, 3))
 
@@ -11097,9 +11079,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         play video
         check if first player ended
         """
-        '''mpv logging.debug(f"player #0 state: {self.dw_player[0].mediaplayer.get_state()}")
-        logging.debug(f"position: {self.getLaps()}")
-        '''
 
         if self.playerType == VLC:
 
