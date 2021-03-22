@@ -85,7 +85,7 @@ from boris import time_budget_functions
 from boris import transitions
 from boris import utilities
 from boris import version
-from boris.boris_ui import *
+from boris.core_ui import *
 from boris.config import *
 from boris.edit_event import DlgEditEvent, EditSelectedEvents
 from boris.project import *
@@ -481,7 +481,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.twEvents.setColumnCount(len(tw_events_fields))
         self.twEvents.setHorizontalHeaderLabels(tw_events_fields)
 
-
         self.config_param = INIT_PARAM
 
         self.menu_options()
@@ -569,20 +568,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionJumpBackward.setEnabled(self.playerType == VLC)
         self.actionJumpTo.setEnabled(self.playerType == VLC)
 
-        self.menuZoom1.setEnabled((self.playerType == VLC) and (self.playMode == MPV))
-        self.menuZoom2.setEnabled(False)
-        '''
-        try:
-            # FIXME
-            zv = self.mediaplayer.video_get_scale()
-            self.actionZoom1_fitwindow.setChecked(zv == 0)
-            self.actionZoom1_1_1.setChecked(zv == 1)
-            self.actionZoom1_1_2.setChecked(zv == 0.5)
-            self.actionZoom1_1_4.setChecked(zv == 0.25)
-            self.actionZoom1_2_1.setChecked(zv == 2)
-        except Exception:
-            pass
-        '''
 
         # toolbar
         self.actionPlay.setEnabled(self.playerType == VLC)
@@ -720,9 +705,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # menu playback
         self.actionJumpTo.triggered.connect(self.jump_to)
+        self.actionZoom_level.triggered.connect(self.zoom_level)
 
         # menu Tools
-
         self.action_block_dockwidgets.triggered.connect(self.block_dockwidgets)
 
         self.action_create_modifiers_coding_map.triggered.connect(self.modifiers_coding_map_creator)
@@ -776,18 +761,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionReset.triggered.connect(self.reset_activated)
         self.actionJumpBackward.triggered.connect(self.jumpBackward_activated)
         self.actionJumpForward.triggered.connect(self.jumpForward_activated)
-
-        self.actionZoom1_fitwindow.triggered.connect(lambda: self.video_zoom(1, 0))
-        self.actionZoom1_1_1.triggered.connect(lambda: self.video_zoom(1, 1))
-        self.actionZoom1_1_2.triggered.connect(lambda: self.video_zoom(1, 0.5))
-        self.actionZoom1_1_4.triggered.connect(lambda: self.video_zoom(1, 0.25))
-        self.actionZoom1_2_1.triggered.connect(lambda: self.video_zoom(1, 2))
-
-        self.actionZoom2_fitwindow.triggered.connect(lambda: self.video_zoom(2, 0))
-        self.actionZoom2_1_1.triggered.connect(lambda: self.video_zoom(2, 1))
-        self.actionZoom2_1_2.triggered.connect(lambda: self.video_zoom(2, 0.5))
-        self.actionZoom2_1_4.triggered.connect(lambda: self.video_zoom(2, 0.25))
-        self.actionZoom2_2_1.triggered.connect(lambda: self.video_zoom(2, 2))
 
         self.actionFaster.triggered.connect(self.video_faster_activated)
         self.actionSlower.triggered.connect(self.video_slower_activated)
@@ -881,12 +854,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.twSubjects.addAction(self.actionDeselectCurrentSubject)
 
         # subjects
-
-        '''
-        # timer for playing
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.timer_out)
-        '''
 
         # timer for spectrogram visualization
         self.timer_sound_signal = QTimer(self)
@@ -3168,7 +3135,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 self.currentSubject = subject
                 self.lbFocalSubject.setText(f" Focal subject: <b>{self.currentSubject}</b>")
-            # self.timer_out()
+
         except Exception:
             logging.critical("error in update_subject function")
 
@@ -3222,6 +3189,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             preferencesWindow.sbFFmpegCacheDirMaxSize.setValue(self.ffmpeg_cache_dir_max_size)
 
             # frame-by-frame mode
+            '''
             if self.config_param.get(SAVE_FRAMES, DEFAULT_FRAME_MODE) == MEMORY:
                 preferencesWindow.rb_save_frames_in_mem.setChecked(True)
             if self.config_param.get(SAVE_FRAMES, DEFAULT_FRAME_MODE) == DISK:
@@ -3232,7 +3200,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 w.setEnabled(preferencesWindow.rb_save_frames_on_disk.isChecked())
 
             preferencesWindow.sb_frames_memory_size.setValue(self.config_param.get(MEMORY_FOR_FRAMES, DEFAULT_MEMORY_FOR_FRAMES))
+            '''
 
+            '''
             r, mem = utilities.mem_info()
             if not r:
                 preferencesWindow.lb_memory_info.setText((f"Total memory: {mem.get('total_memory', 'Not available')} Mb"
@@ -3248,6 +3218,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # frame-by-frame cache size (in seconds)
             preferencesWindow.sb_fbf_cache_size.setValue(self.fbf_cache_size)
 
+
             preferencesWindow.cbFrameBitmapFormat.clear()
             preferencesWindow.cbFrameBitmapFormat.addItems(FRAME_BITMAP_FORMAT_LIST)
 
@@ -3255,6 +3226,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 preferencesWindow.cbFrameBitmapFormat.setCurrentIndex(FRAME_BITMAP_FORMAT_LIST.index(self.frame_bitmap_format))
             except Exception:
                 preferencesWindow.cbFrameBitmapFormat.setCurrentIndex(FRAME_BITMAP_FORMAT_LIST.index(FRAME_DEFAULT_BITMAP_FORMAT))
+            '''
 
             # spectrogram
             preferencesWindow.cbSpectrogramColorMap.clear()
@@ -3347,6 +3319,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.display_statusbar_info(self.observationId)
 
                 # result
+                
                 if preferencesWindow.cb_compact_time_budget.isChecked():
                     self.config_param[TIME_BUDGET_FORMAT] = COMPACT_TIME_BUDGET_FORMAT
                 else:
@@ -3354,15 +3327,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 self.ffmpeg_cache_dir = preferencesWindow.leFFmpegCacheDir.text()
                 self.ffmpeg_cache_dir_max_size = preferencesWindow.sbFFmpegCacheDirMaxSize.value()
-
-
-                self.frame_resize = preferencesWindow.sbFrameResize.value()
-
-
-                self.frame_bitmap_format = preferencesWindow.cbFrameBitmapFormat.currentText()
-
-                # frame-by-frame cache size (in seconds)
-                self.fbf_cache_size = preferencesWindow.sb_fbf_cache_size.value()
 
                 # spectrogram
                 self.spectrogram_color_map = preferencesWindow.cbSpectrogramColorMap.currentText()
@@ -3401,14 +3365,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return currentMedia, round(frameCurrentMedia)
 
 
-    '''
-    def ffmpeg_timer_out(self):
-        """
-        triggered when frame-by-frame mode is activated:
-        read next frame and update image
-        frames are read from disk or from memory
-        """
-    '''
     def redraw_measurements(self):
         '''
         redraw measurements from previous frames
@@ -3805,7 +3761,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # do not close when playing finished
             self.dw_player[i].player.keep_open = True
             self.dw_player[i].player.keep_open_pause = False
-                
+            
+            # position media
+            if OBSERVATION_TIME_INTERVAL in self.pj[OBSERVATIONS][self.observationId]:
+                print(self.pj[OBSERVATIONS][self.observationId][OBSERVATION_TIME_INTERVAL])
+                self.seek_mediaplayer(int(self.pj[OBSERVATIONS][self.observationId][OBSERVATION_TIME_INTERVAL][0]),
+                                      player=i)
+
 
         self.menu_options()
 
@@ -4827,14 +4789,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.actionFrame_by_frame.setChecked(False)
                 self.playMode = VLC
 
-                '''
-                try:
-                    self.FFmpegTimer.stop()
-                    self.FFmpegGlobalFrame = 0
-                except Exception:
-                    pass
-                '''
-
             self.observationId = ""
 
 
@@ -5265,7 +5219,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.lb_obs_time_interval.clear()
         except Exception:
             logging.debug("error in observation time interval")
-            pass
 
 
     # TODO: replace by event_type in project_functions
@@ -8160,7 +8113,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.geometric_measurements_mode:
             self.redraw_measurements()
 
-        # self.timer_out()
         self.actionPlay.setIcon(QIcon(":/play"))
 
 
@@ -8182,7 +8134,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.geometric_measurements_mode:
             self.redraw_measurements()
 
-        # self.timer_out()
         self.actionPlay.setIcon(QIcon(":/play"))
 
 
@@ -8223,31 +8174,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             player.player.screenshot_to_file(snapshot_file_path)
 
 
+    def zoom_level(self):
+        """
+        display dialog for zoom level
+        """
+        players_list = []
+        for idx, dw in enumerate(self.dw_player):
+            zoom_levels = []
+            for choice in [2, 1, 0.5, 0.25]:
+                zoom_levels.append((str(choice), "selected" if log2(choice) == dw.player.video_zoom else ""))
+            players_list.append(("il", f"Player #{idx + 1}", zoom_levels))
+
+        zl = dialog.Input_dialog("Select the zoom level", players_list)
+        if not zl.exec_():
+            return
+
+        for idx, dw in enumerate(self.dw_player):
+            dw.player.video_zoom = log2(float(zl.elements[f"Player #{idx + 1}"].currentText()))
+
+
+    '''
     def video_zoom(self, player, zoom_value):
         """
         change video zoom
         """
 
-        '''
-        QMessageBox.warning(self, programName, "Zoom not implemented!")
-        '''
         if zoom_value == 0:
             self.dw_player[player - 1].player.video_zoom = 0
         else:
             self.dw_player[player - 1].player.video_zoom = log2(zoom_value)
-
-        '''
-        try:
-            zv = self.dw_player[player - 1].mediaplayer.video_get_scale()
-            self.actionZoom1_fitwindow.setChecked(zv == 0)
-            self.actionZoom1_1_1.setChecked(zv == 1)
-            self.actionZoom1_1_2.setChecked(zv == 0.5)
-            self.actionZoom1_1_4.setChecked(zv == 0.25)
-            self.actionZoom1_2_1.setChecked(zv == 2)
-
-        except Exception:
-            pass
-        '''
+    '''    
 
 
     def video_normalspeed_activated(self):
@@ -8316,12 +8272,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # pause media
             if self.pj[OBSERVATIONS][self.observationId][TYPE] in [MEDIA]:
                 if self.playerType == VLC:
-                    if self.playMode == FFMPEG:
-                        memState = self.FFmpegTimer.isActive()
-                        if memState:
-                            self.pause_video()
-
-                    elif self.playMode == MPV:
+                    if self.playMode == MPV:
                         memState = self.is_playing()
                         if memState:
                             self.pause_video()
@@ -9065,7 +9016,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # observation time interval
         if self.pj[OBSERVATIONS][self.observationId].get(OBSERVATION_TIME_INTERVAL, [0, 0])[1]:
-            if current_media_time >= self.pj[OBSERVATIONS][self.observationId].get(OBSERVATION_TIME_INTERVAL, [0, 0])[1]:
+            if cumulative_time_pos >= self.pj[OBSERVATIONS][self.observationId].get(OBSERVATION_TIME_INTERVAL, [0, 0])[1]:
                 if self.is_playing():
                     self.pause_video()
                     self.beep("beep")
@@ -9133,8 +9084,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # update media info
         msg = ""
 
-        #print(f"self.dw_player[0].player.time_pos : {self.dw_player[0].player.time_pos}   frame: {current_media_frame}")
-
         if self.dw_player[0].player.time_pos is not None:
 
             msg = (f"{current_media_name}: <b>{self.convertTime(current_media_time_pos)} / "
@@ -9167,7 +9116,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if scroll_slider:
                 self.video_slider.setValue(current_media_time_pos / current_media_duration * (slider_maximum - 1))
 
-
+    '''
     def timer_out(self, scroll_slider=True):
         """
         indicate the video current position and total length for VLC player
@@ -9178,7 +9127,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         return  # function disabled
 
-        print("timer out")
         if not self.observationId:
             return
 
@@ -9300,42 +9248,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 
 
 
-            ''' # stop behaviors between media files
-            # DISABLED because it is not working well
-            if ((self.memMedia and mediaName != self.memMedia)
-                    or (self.dw_player[0].mediaListPlayer.get_state() == self.vlc_ended and self.timer.isActive())):
-
-                if (CLOSE_BEHAVIORS_BETWEEN_VIDEOS in self.pj[OBSERVATIONS][self.observationId]
-                        and self.pj[OBSERVATIONS][self.observationId][CLOSE_BEHAVIORS_BETWEEN_VIDEOS]):
-
-                    logging.debug("video changed")
-                    logging.debug("current states: {}".format(self.currentStates))
-
-                    for subjIdx in self.currentStates:
-                        if subjIdx:
-                            subjName = self.pj[SUBJECTS][subjIdx]["name"]
-                        else:
-                            subjName = ""
-                        for behav in self.currentStates[subjIdx]:
-                            cm = ""
-                            for ev in self.pj[OBSERVATIONS][self.observationId][EVENTS]:
-                                if ev[EVENT_TIME_FIELD_IDX] > currentTime / 1000:  # time
-                                    break
-                                if ev[EVENT_SUBJECT_FIELD_IDX] == subjName:  # current subject name
-                                    if ev[EVENT_BEHAVIOR_FIELD_IDX] == behav:   # code
-                                        cm = ev[EVENT_MODIFIER_FIELD_IDX]
-
-                            end_time = currentTime / 1000 - Decimal("0.001")
-
-                            self.pj[OBSERVATIONS][self.observationId][EVENTS].append([end_time, subjName, behav, cm, ""])
-                            self.loadEventsInTW(self.observationId)
-                            item = self.twEvents.item([i for i, t in enumerate(self.pj[OBSERVATIONS][self.observationId][EVENTS])
-                                                       if t[0] == end_time][0], 0)
-                            self.twEvents.scrollToItem(item)
-                            self.projectChanged = True
-
-            self.memMedia = mediaName
-            '''
+        '''
 
 
 
@@ -9504,19 +9417,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         # pause media
                         if self.pj[OBSERVATIONS][self.observationId][TYPE] in [MEDIA]:
                             if self.playerType == VLC:
-                                if self.playMode == FFMPEG:
-                                    memState = self.FFmpegTimer.isActive()
-                                    if memState:
-                                        self.pause_video()
-                                elif self.playMode == MPV:
-                                    if self.dw_player[0].player.pause:
-                                        memState = "paused"
-                                    elif self.dw_player[0].player.time_pos is not None:
-                                        memState = "playing"
-                                    else:
-                                        memState = "stopped"
-                                    if memState == "playing":
-                                        self.pause_video()
+                                if self.dw_player[0].player.pause:
+                                    memState = "paused"
+                                elif self.dw_player[0].player.time_pos is not None:
+                                    memState = "playing"
+                                else:
+                                    memState = "stopped"
+                                if memState == "playing":
+                                    self.pause_video()
 
                         # check if editing (original_modifiers key)
                         currentModifiers = event.get("original_modifiers", "")
@@ -9530,12 +9438,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         # restart media
                         if self.pj[OBSERVATIONS][self.observationId][TYPE] in [MEDIA]:
                             if self.playerType == VLC:
-                                if self.playMode == FFMPEG:
-                                    if memState:
-                                        self.play_video()
-                                elif self.playMode == MPV:
-                                    if memState == "playing":
-                                        self.play_video()
+                                if memState == "playing":
+                                    self.play_video()
                         if not r:  # cancel button pressed
                             return
 
@@ -9699,12 +9603,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return Decimal(0)
 
             if self.playerType == VLC:
-                if self.playMode == MPV:
-                    # cumulative time
-                    mem_laps = sum(self.dw_player[n_player].media_durations[
-                                   0:self.dw_player[n_player].player.playlist_pos]) + (0 if self.dw_player[n_player].player.time_pos is None else self.dw_player[n_player].player.time_pos * 1000)
-                    
-                    return Decimal(round(mem_laps/1000, 3))
+                # cumulative time
+                mem_laps = sum(self.dw_player[n_player].media_durations[
+                                0:self.dw_player[n_player].player.playlist_pos]) + (0 if self.dw_player[n_player].player.time_pos is None else self.dw_player[n_player].player.time_pos * 1000)
+
+                return Decimal(round(mem_laps/1000, 3))
 
 
     def full_event(self, behavior_idx):
@@ -9773,20 +9676,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
 
         if self.playerType == VLC:
-            if self.playMode == MPV:
 
-                if self.dw_player[0].player.pause:
-                    return False
-                elif self.dw_player[0].player.time_pos is not None:
-                    return True
-                else:
-                    return False
+            if self.dw_player[0].player.pause:
+                return False
+            elif self.dw_player[0].player.time_pos is not None:
+                return True
+            else:
+                return False
 
-                return not self.dw_player[0].player.pause
+            return not self.dw_player[0].player.pause
 
-            if self.playMode == FFMPEG:
-                return self.FFmpegTimer.isActive()
-            # FIXME exit without return value
         else:
             return False
 
@@ -9813,8 +9712,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                      "It is not allowed to log events in this mode."))
             return
 
-        #if self.playMode == MPV:
-        #    self.timer_out()
 
         if not self.observationId:
             return
@@ -11082,28 +10979,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.playerType == VLC:
 
-            if self.playMode == MPV:
-                # check if player 1 is ended
-                for i, dw in enumerate(self.dw_player):
-                    if (str(i + 1) in self.pj[OBSERVATIONS][self.observationId][FILE]
-                       and self.pj[OBSERVATIONS][self.observationId][FILE][str(i + 1)]):
-                        dw.player.pause = False
+            # check if player 1 is ended
+            for i, dw in enumerate(self.dw_player):
+                if (str(i + 1) in self.pj[OBSERVATIONS][self.observationId][FILE]
+                    and self.pj[OBSERVATIONS][self.observationId][FILE][str(i + 1)]):
+                    dw.player.pause = False
 
-                self.lb_player_status.clear()
+            self.lb_player_status.clear()
 
-                # self.timer.start(VLC_TIMER_OUT)
-                if self.pj[OBSERVATIONS][self.observationId].get(VISUALIZE_WAVEFORM, False) or self.pj[OBSERVATIONS][self.observationId].get(VISUALIZE_SPECTROGRAM, False):
-                    self.timer_sound_signal.start()
+            # self.timer.start(VLC_TIMER_OUT)
+            if self.pj[OBSERVATIONS][self.observationId].get(VISUALIZE_WAVEFORM, False) or self.pj[OBSERVATIONS][self.observationId].get(VISUALIZE_SPECTROGRAM, False):
+                self.timer_sound_signal.start()
 
-                # start all timer for plotting data
-                for data_timer in self.ext_data_timer_list:
-                    data_timer.start()
+            # start all timer for plotting data
+            for data_timer in self.ext_data_timer_list:
+                data_timer.start()
 
-                self.actionPlay.setIcon(QIcon(":/pause"))
-                self.actionFrame_by_frame.setChecked(False)
-                self.frame_mode = False
+            self.actionPlay.setIcon(QIcon(":/pause"))
+            self.actionFrame_by_frame.setChecked(False)
+            self.frame_mode = False
 
-                return True
+            return True
 
 
     def pause_video(self):
@@ -11113,27 +11009,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
 
         if self.playerType == VLC:
-            if self.playMode == FFMPEG:
-                self.FFmpegTimer.stop()
 
-            elif self.playMode == MPV:
-                for i, player in enumerate(self.dw_player):
-                    if (str(i + 1) in self.pj[OBSERVATIONS][self.observationId][FILE]
-                            and self.pj[OBSERVATIONS][self.observationId][FILE][str(i + 1)]):
+            for i, player in enumerate(self.dw_player):
+                if (str(i + 1) in self.pj[OBSERVATIONS][self.observationId][FILE]
+                        and self.pj[OBSERVATIONS][self.observationId][FILE][str(i + 1)]):
 
-                        if not player.player.pause:
+                    if not player.player.pause:
 
-                            # self.timer.stop()
-                            self.timer_sound_signal.stop()
-                            # stop all timer for plotting data
+                        # self.timer.stop()
+                        self.timer_sound_signal.stop()
+                        # stop all timer for plotting data
 
-                            for data_timer in self.ext_data_timer_list:
-                                data_timer.stop()
+                        for data_timer in self.ext_data_timer_list:
+                            data_timer.stop()
 
-                            player.player.pause = True
+                        player.player.pause = True
 
-                self.lb_player_status.setText("Player paused")
-                # self.timer_out()
+            self.lb_player_status.setText("Player paused")
 
             self.timer_sound_signal_out()
             for idx in self.plot_data:
@@ -11162,25 +11054,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             decrement = self.fast * self.play_rate if self.config_param.get(ADAPT_FAST_JUMP, ADAPT_FAST_JUMP_DEFAULT) else self.fast
 
-            if self.playMode == MPV:
+            new_time = (sum(
+                self.dw_player[0].media_durations[0:self.dw_player[0].player.playlist_pos]) / 1000 +
+                        self.dw_player[0].player.playback_time - decrement)
 
-                new_time = (sum(
-                    self.dw_player[0].media_durations[0:self.dw_player[0].player.playlist_pos]) / 1000 +
-                           self.dw_player[0].player.playback_time - decrement)
+            if new_time < decrement:
+                new_time = 0
 
-                if new_time < decrement:
-                    new_time = 0
+            self.seek_mediaplayer(new_time)
 
-                self.seek_mediaplayer(new_time)
+            self.update_visualizations()
 
-                self.update_visualizations()
-
-                # subtitles
-                '''
-                st_track_number = 0 if self.config_param[DISPLAY_SUBTITLES] else -1
-                for player in self.dw_player:
-                    player.mediaplayer.video_set_spu(st_track_number)
-                '''
+            # subtitles
+            '''
+            st_track_number = 0 if self.config_param[DISPLAY_SUBTITLES] else -1
+            for player in self.dw_player:
+                player.mediaplayer.video_set_spu(st_track_number)
+            '''
 
 
     def jumpForward_activated(self):
@@ -11193,24 +11083,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             increment = self.fast * self.play_rate if self.config_param.get(ADAPT_FAST_JUMP, ADAPT_FAST_JUMP_DEFAULT) else self.fast
 
-            if self.playMode == MPV:
+            new_time = (sum(
+                self.dw_player[0].media_durations[0:self.dw_player[0].player.playlist_pos]) / 1000
+                                            + self.dw_player[0].player.playback_time + increment)
 
-                new_time = (sum(
-                    self.dw_player[0].media_durations[0:self.dw_player[0].player.playlist_pos]) / 1000
-                                               + self.dw_player[0].player.playback_time + increment)
+            self.seek_mediaplayer(new_time)
 
-                print(new_time)
-
-                self.seek_mediaplayer(new_time)
-
-                self.update_visualizations()
+            self.update_visualizations()
 
 
     def update_visualizations(self, scroll_slider=False):
         """
         update visualization of video position, spectrogram and data
         """
-        self.timer_out(scroll_slider)
+        '''self.timer_out(scroll_slider)'''
         self.timer_sound_signal_out()
         for idx in self.plot_data:
             self.timer_plot_data_out(self.plot_data[idx])
@@ -11225,14 +11111,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.playerType == VLC:
 
             self.pause_video()
-            if self.playMode == MPV:
 
-                if OBSERVATION_TIME_INTERVAL in self.pj[OBSERVATIONS][self.observationId]:
-                    self.seek_mediaplayer(int(self.pj[OBSERVATIONS][self.observationId][OBSERVATION_TIME_INTERVAL][0] * 1000))
-                else:
-                    self.seek_mediaplayer(0)
+            if OBSERVATION_TIME_INTERVAL in self.pj[OBSERVATIONS][self.observationId]:
+                self.seek_mediaplayer(int(self.pj[OBSERVATIONS][self.observationId][OBSERVATION_TIME_INTERVAL][0] * 1000))
+            else:
+                self.seek_mediaplayer(0)
 
-                self.update_visualizations()
+            self.update_visualizations()
 
     ''' 2019-12-12
     def changedFocusSlot(self, old, now):
