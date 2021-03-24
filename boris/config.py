@@ -144,6 +144,7 @@ BEHAVIOR_CODE = "code"
 BEHAVIOR_KEY = "key"
 BEHAVIOR_CATEGORY = "category"
 
+ZOOM_LEVEL = "zoom level"
 
 # fields for event configuration
 fields = {

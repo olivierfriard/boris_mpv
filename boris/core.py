@@ -3683,7 +3683,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.dw_player[-1].setVisible(False)
             self.dw_player[-1].setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
 
-
             # place 4 players at the top of the main window and 4 at the bottom
             if i < 4:
                 self.addDockWidget(Qt.TopDockWidgetArea if i < 4 else Qt.BottomDockWidgetArea, self.dw_player[-1])
@@ -3753,7 +3752,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 #self.dw_player[i].player.loadfile(media_full_path)
                 #self.dw_player[i].player.pause = True
 
-
             self.dw_player[i].player.playlist_pos = 0
             self.dw_player[i].player.wait_until_playing()
             self.dw_player[i].player.pause = True
@@ -3767,6 +3765,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if OBSERVATION_TIME_INTERVAL in self.pj[OBSERVATIONS][self.observationId]:
                 self.seek_mediaplayer(int(self.pj[OBSERVATIONS][self.observationId][OBSERVATION_TIME_INTERVAL][0]),
                                       player=i)
+
+            # restore zoom level
+            if ZOOM_LEVEL in self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]:
+                self.dw_player[i].player.video_zoom = log2(self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][ZOOM_LEVEL][n_player])
 
 
         self.menu_options()
@@ -4549,7 +4551,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     logging.info("error with media_info information")
 
                 self.pj[OBSERVATIONS][new_obs_id][MEDIA_INFO]["offset"] = {}
-
 
                 logging.debug(f"media_info: {self.pj[OBSERVATIONS][new_obs_id][MEDIA_INFO]}")
 
@@ -8193,8 +8194,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not zl.exec_():
             return
 
+        if ZOOM_LEVEL not in self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]:
+            self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][ZOOM_LEVEL] = {}
+
         for idx, dw in enumerate(self.dw_player):
             dw.player.video_zoom = log2(float(zl.elements[f"Player #{idx + 1}"].currentText()))
+            self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][ZOOM_LEVEL][str(idx + 1)] = float(zl.elements[f"Player #{idx + 1}"].currentText())
 
 
     '''
