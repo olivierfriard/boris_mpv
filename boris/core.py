@@ -1657,7 +1657,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         allow user to:
             filter behaviors in ethogram widget
             or
-            select behaviors to remove from the total time 
+            select behaviors to remove from the total time
 
         Args:
             title (str): title of dialog box
@@ -2386,7 +2386,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     tmp_dir = self.ffmpeg_cache_dir if self.ffmpeg_cache_dir and os.path.isdir(self.ffmpeg_cache_dir) else tempfile.gettempdir()
 
                     wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
-                        self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"                        
+                        self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"
                         ).name
 
                     self.spectro = plot_spectrogram_rt.Plot_spectrogram_RT()
@@ -2498,7 +2498,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 tmp_dir = self.ffmpeg_cache_dir if self.ffmpeg_cache_dir and os.path.isdir(self.ffmpeg_cache_dir) else tempfile.gettempdir()
 
                 wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
-                    self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"                    
+                    self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"
                     ).name
 
                 self.waveform = plot_waveform_rt.Plot_waveform_RT()
@@ -2907,8 +2907,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.hide_data_files()
             if dialog.MessageDialog(programName, "The current observation will be closed. Do you want to continue?",
                                     [YES, NO]) == NO:
-                
-                self.show_data_files()                                    
+
+                self.show_data_files()
                 return
             else:
                 self.close_observation()
@@ -2975,7 +2975,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 if player == 0 and not self.user_move_slider:
                     try:
-                        print("set slider value (from seek media player)")
                         self.video_slider.setValue(self.dw_player[0].player.time_pos  / self.dw_player[0].player.duration * (slider_maximum - 1))
                     except Exception:
                         pass
@@ -2984,7 +2983,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         elif self.dw_player[player].player.playlist_count > 1:
 
-            
+
             if new_time < sum(self.dw_player[player].media_durations) / 1000:
                 # remember if player paused (go previous will start playing)
                 flagPaused = self.is_playing()
@@ -3000,7 +2999,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         if idx == self.dw_player[player].player.playlist_pos - 1:
                             self.dw_player[player].player.playlist_prev()
                             time.sleep(1)
-                       
+
                         self.dw_player[player].player.seek(round(new_time - sum(self.dw_player[player].media_durations[0:self.dw_player[player].player.playlist_pos]) / 1000, 3),
                                                            'absolute+exact')
 
@@ -3009,7 +3008,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 if player == 0 and not self.user_move_slider:
                     try:
-                        print("set slider value (from seek media player)")
                         self.video_slider.setValue(self.dw_player[0].player.time_pos  / self.dw_player[0].player.duration * (slider_maximum - 1))
                     except Exception:
                         pass
@@ -3322,7 +3320,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.display_statusbar_info(self.observationId)
 
                 # result
-                
+
                 if preferencesWindow.cb_compact_time_budget.isChecked():
                     self.config_param[TIME_BUDGET_FORMAT] = COMPACT_TIME_BUDGET_FORMAT
                 else:
@@ -3663,7 +3661,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setDockOptions(QMainWindow.AnimatedDocks | QMainWindow.AllowNestedDocks)
         self.dw_player = []
         # create dock widgets for players
-        
+
         self.time_observer_signal.connect(self.timer_out2)
 
         for i in range(N_PLAYER):
@@ -3714,7 +3712,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.dw_player[i].media_durations = []
             # add fps list
             self.dw_player[i].fps = {}
-            
+
             for mediaFile in self.pj[OBSERVATIONS][self.observationId][FILE][n_player]:
 
                 logging.debug(f"media file: {mediaFile}")
@@ -3754,7 +3752,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.dw_player[i].player.playlist_append(media_full_path)
                 #self.dw_player[i].player.loadfile(media_full_path)
                 #self.dw_player[i].player.pause = True
-                
+
 
             self.dw_player[i].player.playlist_pos = 0
             self.dw_player[i].player.wait_until_playing()
@@ -3764,10 +3762,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # do not close when playing finished
             self.dw_player[i].player.keep_open = True
             self.dw_player[i].player.keep_open_pause = False
-            
+
             # position media
             if OBSERVATION_TIME_INTERVAL in self.pj[OBSERVATIONS][self.observationId]:
-                print(self.pj[OBSERVATIONS][self.observationId][OBSERVATION_TIME_INTERVAL])
                 self.seek_mediaplayer(int(self.pj[OBSERVATIONS][self.observationId][OBSERVATION_TIME_INTERVAL][0]),
                                       player=i)
 
@@ -3829,7 +3826,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             tmp_dir = self.ffmpeg_cache_dir if self.ffmpeg_cache_dir and os.path.isdir(self.ffmpeg_cache_dir) else tempfile.gettempdir()
 
             wav_file_path = pathlib.Path(tmp_dir) / pathlib.Path(
-                self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"                
+                self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"] + ".wav"
                 ).name
 
             if not wav_file_path.is_file():
@@ -3984,6 +3981,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for player in self.dw_player:
             player.setVisible(True)
 
+        # inital synchro
+        for n_player in range(1, len(self.dw_player)):
+                self.sync_time(n_player, 0)
+
+
         return True
 
 
@@ -3993,7 +3995,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         triggered by timers in self.ext_data_timer_list
         """
         w.update_plot(self.getLaps())
-
 
     def signal_from_widget(self, event):
         """
@@ -4190,7 +4191,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if dialog.MessageDialog(programName, "The current observation will be closed. Do you want to continue?",
                                     [YES, NO]) == NO:
 
-                # show data plot 
+                # show data plot
                 self.show_data_files()
                 return
             else:
@@ -4362,7 +4363,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # sampling time
                 observationWindow.sbScanSampling.setValue(self.pj[OBSERVATIONS][obsId].get(SCAN_SAMPLING_TIME, 0))
                 # start from current time
-                observationWindow.cb_start_from_current_time.setChecked(self.pj[OBSERVATIONS][obsId].get(START_FROM_CURRENT_TIME, False) 
+                observationWindow.cb_start_from_current_time.setChecked(self.pj[OBSERVATIONS][obsId].get(START_FROM_CURRENT_TIME, False)
                                                                         or self.pj[OBSERVATIONS][obsId].get(START_FROM_CURRENT_EPOCH_TIME, False))
                 # day/epoch time
                 observationWindow.rb_day_time.setChecked(self.pj[OBSERVATIONS][obsId].get(START_FROM_CURRENT_TIME, False))
@@ -4527,9 +4528,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             if self.pj[OBSERVATIONS][new_obs_id][TYPE] in [LIVE]:
                 self.pj[OBSERVATIONS][new_obs_id][SCAN_SAMPLING_TIME] = observationWindow.sbScanSampling.value()
-                self.pj[OBSERVATIONS][new_obs_id][START_FROM_CURRENT_TIME] = (observationWindow.cb_start_from_current_time.isChecked() 
+                self.pj[OBSERVATIONS][new_obs_id][START_FROM_CURRENT_TIME] = (observationWindow.cb_start_from_current_time.isChecked()
                                                                               and observationWindow.rb_day_time.isChecked())
-                self.pj[OBSERVATIONS][new_obs_id][START_FROM_CURRENT_EPOCH_TIME] = (observationWindow.cb_start_from_current_time.isChecked() 
+                self.pj[OBSERVATIONS][new_obs_id][START_FROM_CURRENT_EPOCH_TIME] = (observationWindow.cb_start_from_current_time.isChecked()
                                                                               and observationWindow.rb_epoch_time.isChecked())
 
             # media file
@@ -7874,8 +7875,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if not (str(i + 1) in self.pj[OBSERVATIONS][self.observationId][FILE] and
                         self.pj[OBSERVATIONS][self.observationId][FILE][str(i + 1)]):
                     continue
-                
-                
+
+
                 logging.info(f"Video format: {dw.player.video_format}")
                 logging.info(f"number of media in media list: {dw.player.playlist_count}")
                 logging.info(f"Current time position: {dw.player.time_pos}  duration: {dw.player.duration}")
@@ -7907,7 +7908,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                               #"is seekable? {}<br>"
                               #"has_vout? {}<br>"
                               )
-                
+
                 # FFmpeg analysis
                 ffmpeg_output = "<br><b>FFmpeg analysis</b><br>"
 
@@ -8206,7 +8207,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.dw_player[player - 1].player.video_zoom = 0
         else:
             self.dw_player[player - 1].player.video_zoom = log2(zoom_value)
-    '''    
+    '''
 
 
     def video_normalspeed_activated(self):
@@ -8694,7 +8695,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         programs_versions = ["MPV media player"]
 
-        
+
         # ffmpeg
         if self.ffmpeg_bin == "ffmpeg" and sys.platform.startswith("linux"):
             ffmpeg_true_path = subprocess.getoutput("which ffmpeg")
@@ -8907,13 +8908,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 if self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]["offset"][str(n_player + 1)]:
 
-                    print(self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]["offset"][str(n_player + 1)])
-
                     if self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]["offset"][str(n_player + 1)] > 0:
 
                         if new_time < self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]["offset"][str(n_player + 1)]:
                             # hide video if time < offset
-                            '''pass'''
                             self.dw_player[n_player].stack.setCurrentIndex(1)
                         else:
 
@@ -8922,7 +8920,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                        self.dw_player[n_player].media_durations)):
                                 # hide video if required time > video time + offset
                                 self.dw_player[n_player].stack.setCurrentIndex(1)
-                                '''pass'''
                             else:
                                 # show video
                                 self.dw_player[n_player].stack.setCurrentIndex(0)
@@ -8938,7 +8935,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                    self.dw_player[n_player].media_durations)):
                             # hide video if required time > video time + offset
                             self.dw_player[n_player].stack.setCurrentIndex(1)
-                            '''pass'''
                         else:
                             self.dw_player[n_player].stack.setCurrentIndex(0)
                             self.seek_mediaplayer(new_time - Decimal(self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]
@@ -8978,7 +8974,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         if tot <= new_time < tot + d:
                             '''self.dw_player[n_player].mediaListPlayer.play_item_at_index(idx)'''
                             self.dw_player[n_player].player.playing_pos = idx
-                            
+
                             '''QApplication.processEvents()
                             # wait until media is played
                             while True:
@@ -9025,7 +9021,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
 
         cumulative_time_pos = self.getLaps()
-        
+
         if value is None:
             current_media_time_pos = 0
         else:
@@ -9050,24 +9046,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # t0 = mediaTime
         ct0 = cumulative_time_pos
 
+
         if self.dw_player[0].player.time_pos:
             # FIXME enumerate(self.dw_player)
+            # for n_player, dw in enumerate(self.dw_player):
+
+
+            """
             for n_player in range(1, N_PLAYER):
-                if (str(n_player + 1) in self.pj[OBSERVATIONS][self.observationId][FILE]
-                        and self.pj[OBSERVATIONS][self.observationId][FILE][str(n_player + 1)]):
-                    t = self.dw_player[n_player].player.time_pos 
+                if (str(n_player + 1) in self.pj[OBSERVATIONS][self.observationId][FILE] and self.pj[OBSERVATIONS][self.observationId][FILE][str(n_player + 1)]):
+                    t = self.dw_player[n_player].player.time_pos
                     ct = self.getLaps(n_player=n_player)
 
-                    """
                     if abs(ct0 -
                             (ct + Decimal(self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]
                                             ["offset"][str(n_player + 1)]) )) >= 1:
 
-                        '''self.sync_time(n_player, ct0)'''
-                        self.seek_mediaplayer(ct0, n_player)
-                    """
-                    self.sync_time(n_player, ct0)
-                    '''self.seek_mediaplayer(ct0, n_player)'''
+                        self.sync_time(n_player, ct0)
+            """
+
+            for n_player in range(1, len(self.dw_player)):
+
+
+                # t = self.dw_player[n_player].player.time_pos
+                ct = self.getLaps(n_player=n_player)
+
+                if abs(ct0 -
+                        (ct + Decimal(self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]
+                                        ["offset"][str(n_player + 1)]) )) >= 1:
+
+                    print(f"sync player: {n_player + 1}")
+                    self.sync_time(n_player, ct0)  # self.seek_mediaplayer(ct0, n_player)
+
 
 
         currentTimeOffset = Decimal(cumulative_time_pos + self.pj[OBSERVATIONS][self.observationId][TIME_OFFSET])
@@ -9078,7 +9088,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         current_media_duration = self.dw_player[0].player.duration  # mediaplayer_length
 
-        self.mediaTotalLength = current_media_duration 
+        self.mediaTotalLength = current_media_duration
 
         # current state(s)
         # extract State events
@@ -9138,7 +9148,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # set video scroll bar
             if scroll_slider and not self.user_move_slider:
-                print("set slider from timer_out2")
                 self.video_slider.setValue(current_media_time_pos / current_media_duration * (slider_maximum - 1))
 
 
