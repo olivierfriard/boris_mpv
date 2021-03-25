@@ -2904,27 +2904,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.playerType == VIEWER:
             self.close_observation()
+
         # check if an observation is running
         if self.observationId:
             # hide data plot
+            
             self.hide_data_files()
             if dialog.MessageDialog(programName, "The current observation will be closed. Do you want to continue?",
                                     [YES, NO]) == NO:
 
                 self.show_data_files()
                 return
-            else:
-                self.close_observation()
 
         result, selected_obs = self.selectObservations(SINGLE)
 
         if selected_obs:
+            if result in [OPEN, VIEW, EDIT]:
+                self.close_observation()
             if result == OPEN:
                 self.load_observation(selected_obs[0], "start")
-
             if result == VIEW:
                 self.load_observation(selected_obs[0], VIEW)
-
             if result == EDIT:
                 if self.observationId != selected_obs[0]:
                     self.new_observation(mode=EDIT, obsId=selected_obs[0])   # observation id to edit
@@ -3771,7 +3771,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # restore zoom level
             if ZOOM_LEVEL in self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]:
-                self.dw_player[i].player.video_zoom = log2(self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][ZOOM_LEVEL][n_player])
+                self.dw_player[i].player.video_zoom = log2(self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][ZOOM_LEVEL].get(n_player, 0))
+
+            # restore subtitle visibility
+            if DISPLAY_MEDIA_SUBTITLES in self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]:
+                self.dw_player[i].player.sub_visibility = self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][DISPLAY_MEDIA_SUBTITLES].get(n_player, True)
 
 
         self.menu_options()
@@ -4757,7 +4761,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.saved_state = self.saveState()
 
             if self.playerType == VLC:
-                #self.timer.stop()
 
                 self.timer_sound_signal.stop()
 
@@ -4770,8 +4773,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.verticalLayout_3.removeWidget(self.video_slider)
 
                 if self.video_slider is not None:
+                    self.video_slider.setVisible(False)
                     self.video_slider.deleteLater()
                     self.video_slider = None
+
 
             if self.playerType == LIVE:
                 self.liveTimer.stop()
@@ -4796,7 +4801,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 self.dw_player = []
 
-                self.actionFrame_by_frame.setChecked(False)
                 self.playMode = VLC
 
             self.observationId = ""
@@ -8203,9 +8207,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][ZOOM_LEVEL] = {}
 
         for idx, dw in enumerate(self.dw_player):
-            dw.player.video_zoom = log2(float(zl.elements[f"Player #{idx + 1}"].currentText()))
-            self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][ZOOM_LEVEL][str(idx + 1)] = float(zl.elements[f"Player #{idx + 1}"].currentText())
-            # TODO: test if project changed
+            if self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][ZOOM_LEVEL].get(str(idx + 1), dw.player.video_zoom) != float(zl.elements[f"Player #{idx + 1}"].currentText()):
+                dw.player.video_zoom = log2(float(zl.elements[f"Player #{idx + 1}"].currentText()))
+                self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][ZOOM_LEVEL][str(idx + 1)] = float(zl.elements[f"Player #{idx + 1}"].currentText())
+                self.projectChanged = True
+
 
     def display_subtitles(self):
         """
@@ -8214,9 +8220,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         players_list = []
         for idx, dw in enumerate(self.dw_player):
             if DISPLAY_MEDIA_SUBTITLES in self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]:
-                default = self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][DISPLAY_MEDIA_SUBTITLES][str(idx + 1)]
+                default = self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][DISPLAY_MEDIA_SUBTITLES].get(str(idx + 1), dw.player.sub_visibility)
             else:
-                default = False
+                default = dw.player.sub_visibility
             players_list.append(("cb", f"Player #{idx + 1}", default))
 
         st = dialog.Input_dialog("Display subtitles", players_list)
@@ -8227,9 +8233,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][DISPLAY_MEDIA_SUBTITLES] = {}
 
         for idx, dw in enumerate(self.dw_player):
-            dw.player.sub_visibility = st.elements[f"Player #{idx + 1}"].isChecked()
-            self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][DISPLAY_MEDIA_SUBTITLES][str(idx + 1)] = st.elements[f"Player #{idx + 1}"].isChecked()
-            # TODO: test if project changed
+            if self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][DISPLAY_MEDIA_SUBTITLES].get(str(idx + 1), dw.player.sub_visibility) != st.elements[f"Player #{idx + 1}"].isChecked():
+                dw.player.sub_visibility = st.elements[f"Player #{idx + 1}"].isChecked()
+                self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][DISPLAY_MEDIA_SUBTITLES][str(idx + 1)] = st.elements[f"Player #{idx + 1}"].isChecked()
+                self.projectChanged = True
 
 
     def video_normalspeed_activated(self):
@@ -9065,57 +9072,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # highlight current event in tw events and scroll event list
         self.get_events_current_row()
 
-        # t0 = mediaTime
         ct0 = cumulative_time_pos
 
-
-        if self.dw_player[0].player.time_pos:
-            # FIXME enumerate(self.dw_player)
-            # for n_player, dw in enumerate(self.dw_player):
-
-
-            """
-            for n_player in range(1, N_PLAYER):
-                if (str(n_player + 1) in self.pj[OBSERVATIONS][self.observationId][FILE] and self.pj[OBSERVATIONS][self.observationId][FILE][str(n_player + 1)]):
-                    t = self.dw_player[n_player].player.time_pos
-                    ct = self.getLaps(n_player=n_player)
-
-                    if abs(ct0 -
-                            (ct + Decimal(self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]
-                                            ["offset"][str(n_player + 1)]) )) >= 1:
-
-                        self.sync_time(n_player, ct0)
-            """
+        if self.dw_player[0].player.time_pos is not None:
 
             for n_player in range(1, len(self.dw_player)):
 
-
-                # t = self.dw_player[n_player].player.time_pos
                 ct = self.getLaps(n_player=n_player)
 
+                # sync players 2..8 if time diff >= 1 s
                 if abs(ct0 -
                         (ct + Decimal(self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]
                                         ["offset"][str(n_player + 1)]) )) >= 1:
-
-                    print(f"sync player: {n_player + 1}")
                     self.sync_time(n_player, ct0)  # self.seek_mediaplayer(ct0, n_player)
-
-
 
         currentTimeOffset = Decimal(cumulative_time_pos + self.pj[OBSERVATIONS][self.observationId][TIME_OFFSET])
 
         all_media_duration = sum(self.dw_player[0].media_durations) / 1000
-
         mediaName = ""
-
         current_media_duration = self.dw_player[0].player.duration  # mediaplayer_length
-
         self.mediaTotalLength = current_media_duration
 
         # current state(s)
         # extract State events
         StateBehaviorsCodes = utilities.state_behavior_codes(self.pj[ETHOGRAM])
-
         self.currentStates = {}
 
         # index of current subject
@@ -11018,7 +10998,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         update visualization of video position, spectrogram and data
         """
-        '''self.timer_out(scroll_slider)'''
+
         self.timer_sound_signal_out()
         for idx in self.plot_data:
             self.timer_plot_data_out(self.plot_data[idx])
@@ -11040,6 +11020,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.seek_mediaplayer(0)
 
             self.update_visualizations()
+
 
     ''' 2019-12-12
     def changedFocusSlot(self, old, now):
