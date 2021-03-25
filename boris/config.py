@@ -145,6 +145,7 @@ BEHAVIOR_KEY = "key"
 BEHAVIOR_CATEGORY = "category"
 
 ZOOM_LEVEL = "zoom level"
+DISPLAY_MEDIA_SUBTITLES = "display subtitles"
 
 # fields for event configuration
 fields = {

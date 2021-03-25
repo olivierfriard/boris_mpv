@@ -570,6 +570,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionJumpBackward.setEnabled(self.playerType == VLC)
         self.actionJumpTo.setEnabled(self.playerType == VLC)
 
+        self.actionZoom_level.setEnabled(self.playerType == VLC)
+        self.actionDisplay_subtitles.setEnabled(self.playerType == VLC)
 
         # toolbar
         self.actionPlay.setEnabled(self.playerType == VLC)
@@ -708,6 +710,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # menu playback
         self.actionJumpTo.triggered.connect(self.jump_to)
         self.actionZoom_level.triggered.connect(self.zoom_level)
+        self.actionDisplay_subtitles.triggered.connect(self.display_subtitles)
 
         # menu Tools
         self.action_block_dockwidgets.triggered.connect(self.block_dockwidgets)
@@ -4009,10 +4012,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         receive signal from dock widget: clicked or resized
         """
+        return # function disabled
 
         if msg == "clicked_out_of_video":
             self.dw_player[id_].mediaplayer.video_set_crop_geometry(None)
             self.dw_player[id_].zoomed = False
+
             return
 
         x_center = self.dw_player[id_].videoframe.x_click
@@ -8200,19 +8205,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for idx, dw in enumerate(self.dw_player):
             dw.player.video_zoom = log2(float(zl.elements[f"Player #{idx + 1}"].currentText()))
             self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][ZOOM_LEVEL][str(idx + 1)] = float(zl.elements[f"Player #{idx + 1}"].currentText())
+            # TODO: test if project changed
 
-
-    '''
-    def video_zoom(self, player, zoom_value):
+    def display_subtitles(self):
         """
-        change video zoom
+        display dialog for subtitles display
         """
+        players_list = []
+        for idx, dw in enumerate(self.dw_player):
+            if DISPLAY_MEDIA_SUBTITLES in self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]:
+                default = self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][DISPLAY_MEDIA_SUBTITLES][str(idx + 1)]
+            else:
+                default = False
+            players_list.append(("cb", f"Player #{idx + 1}", default))
 
-        if zoom_value == 0:
-            self.dw_player[player - 1].player.video_zoom = 0
-        else:
-            self.dw_player[player - 1].player.video_zoom = log2(zoom_value)
-    '''
+        st = dialog.Input_dialog("Display subtitles", players_list)
+        if not st.exec_():
+            return
+
+        if DISPLAY_MEDIA_SUBTITLES not in self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO]:
+            self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][DISPLAY_MEDIA_SUBTITLES] = {}
+
+        for idx, dw in enumerate(self.dw_player):
+            dw.player.sub_visibility = st.elements[f"Player #{idx + 1}"].isChecked()
+            self.pj[OBSERVATIONS][self.observationId][MEDIA_INFO][DISPLAY_MEDIA_SUBTITLES][str(idx + 1)] = st.elements[f"Player #{idx + 1}"].isChecked()
+            # TODO: test if project changed
 
 
     def video_normalspeed_activated(self):

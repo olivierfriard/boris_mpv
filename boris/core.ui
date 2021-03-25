@@ -304,6 +304,8 @@
     <addaction name="separator"/>
     <addaction name="actionZoom_level"/>
     <addaction name="separator"/>
+    <addaction name="actionDisplay_subtitles"/>
+    <addaction name="separator"/>
     <addaction name="actionPlay"/>
     <addaction name="actionPause"/>
     <addaction name="actionPrevious"/>
@@ -1418,6 +1420,11 @@
   <action name="actionZoom_level">
    <property name="text">
     <string>Zoom level</string>
+   </property>
+  </action>
+  <action name="actionDisplay_subtitles">
+   <property name="text">
+    <string>Display subtitles</string>
    </property>
   </action>
  </widget>

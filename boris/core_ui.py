@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'boris.ui'
+# Form implementation generated from reading ui file 'core.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.2
 #
@@ -525,6 +525,8 @@ class Ui_MainWindow(object):
         self.actionSynthetic_binned_time_budget.setObjectName("actionSynthetic_binned_time_budget")
         self.actionZoom_level = QtWidgets.QAction(MainWindow)
         self.actionZoom_level.setObjectName("actionZoom_level")
+        self.actionDisplay_subtitles = QtWidgets.QAction(MainWindow)
+        self.actionDisplay_subtitles.setObjectName("actionDisplay_subtitles")
         self.menuHelp.addAction(self.actionUser_guide)
         self.menuHelp.addAction(self.actionCheckUpdate)
         self.menuHelp.addSeparator()
@@ -609,6 +611,8 @@ class Ui_MainWindow(object):
         self.menuPlayback.addAction(self.actionJumpTo)
         self.menuPlayback.addSeparator()
         self.menuPlayback.addAction(self.actionZoom_level)
+        self.menuPlayback.addSeparator()
+        self.menuPlayback.addAction(self.actionDisplay_subtitles)
         self.menuPlayback.addSeparator()
         self.menuPlayback.addAction(self.actionPlay)
         self.menuPlayback.addAction(self.actionPause)
@@ -874,3 +878,4 @@ class Ui_MainWindow(object):
         self.actionCurrent_Time_Budget.setText(_translate("MainWindow", "Current Time Budget"))
         self.actionSynthetic_binned_time_budget.setText(_translate("MainWindow", "Synthetic time budget with time bin"))
         self.actionZoom_level.setText(_translate("MainWindow", "Zoom level"))
+        self.actionDisplay_subtitles.setText(_translate("MainWindow", "Display subtitles"))
