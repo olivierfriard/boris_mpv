@@ -2346,7 +2346,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 # remember if player paused
                 if self.playerType == VLC and self.playMode == MPV:
-                    flagPaused = self.is_playing()
+                    flag_paused = self.is_playing()
 
                 self.pause_video()
 
@@ -2383,9 +2383,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.spectro.sb_freq_min.setValue(0)
                     self.spectro.sb_freq_max.setValue(int(self.spectro.frame_rate / 2))
                     self.spectro.show()
-                    self.timer_sound_signal.start()
 
-                if self.playerType == VLC and self.playMode == MPV and not flagPaused:
+                    '''self.timer_sound_signal.start()'''
+
+                if self.playerType == VLC and self.playMode == MPV and not flag_paused:
                     self.play_video()
 
         if plot_type == "waveform":
@@ -2396,7 +2397,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 # remember if player paused
                 if self.playerType == VLC and self.playMode == MPV:
-                    flagPaused = self.is_playing()
+                    flag_paused = self.is_playing()
 
                 self.pause_video()
 
@@ -2436,17 +2437,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.waveform.sb_freq_max.setValue(int(self.spectro.frame_rate / 2))
                     '''
                     self.waveform.show()
-                    self.timer_sound_signal.start()
+                    '''self.timer_sound_signal.start()'''
 
-                if self.playerType == VLC and self.playMode == MPV and not flagPaused:
+                if self.playerType == VLC and self.playMode == MPV and not flag_paused:
                     self.play_video()
 
-
+    '''
     def show_waveform(self):
         """
         show waveform window if any
         """
 
+        raise
         if self.playerType in [LIVE, VIEWER]:
             QMessageBox.warning(self, programName, f"The waveform visualization is not available in <b>{self.playerType} mode</b>.")
             return
@@ -2462,7 +2464,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.pause_video()
 
-            if dialog.MessageDialog(programName, ("You choose to visualize the waveform during this observation.<br>"
+            if dialog.MessageDialog(programName, ("XYou choose to visualize the waveform during this observation.<br>"
                                                   "Spectrogram generation can take some time for long media, be patient"),
                                     [YES, NO]) == YES:
 
@@ -2478,7 +2480,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 self.waveform.setWindowFlags(Qt.WindowStaysOnTopHint)
 
-                self.waveform.interval = self.spectrogram_time_interval
+                self.waveform.interval = self.plot_spectrospectrogram_time_interval
                 self.waveform.cursor_color = "red"
 
                 r = self.waveform.load_wav(str(wav_file_path))
@@ -2488,20 +2490,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                         QMessageBox.Ok | QMessageBox.Default,
                                         QMessageBox.NoButton)
                     del self.waveform
-                    return
+                return
 
                 self.pj[OBSERVATIONS][self.observationId][VISUALIZE_SPECTROGRAM] = True
                 self.waveform.sendEvent.connect(self.signal_from_widget)
-                '''
-                self.waveform.sb_freq_min.setValue(0)
-                self.waveform.sb_freq_max.setValue(int(self.spectro.frame_rate / 2))
-                '''
                 self.waveform.show()
                 self.timer_waveform.start()
+                print("self.timer_waveform.start()")
 
             if self.playerType == VLC and self.playMode == MPV and not flagPaused:
                 self.play_video()
-
+    '''
 
     def timer_sound_signal_out(self):
         """
@@ -2520,8 +2519,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.playerType == VLC:
 
-            if self.playMode == MPV:
-                current_media_time = self.dw_player[0].player.time_pos
+            current_media_time = self.dw_player[0].player.time_pos
 
             tmp_dir = self.ffmpeg_cache_dir if self.ffmpeg_cache_dir and os.path.isdir(self.ffmpeg_cache_dir) else tempfile.gettempdir()
 
@@ -2532,6 +2530,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # waveform
             if self.pj[OBSERVATIONS][self.observationId].get(VISUALIZE_WAVEFORM, False):
+
+                print("waveform")
 
                 if not hasattr(self, "waveform"):
                     return
@@ -2547,6 +2547,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # spectrogram
             if self.pj[OBSERVATIONS][self.observationId].get(VISUALIZE_SPECTROGRAM, False):
+
+                print("spectro")
 
                 if not hasattr(self, "spectro"):
                     return
@@ -2874,19 +2876,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.playerType == VIEWER:
             self.close_observation()
-
-        '''
-        # check if an observation is running
-        if self.observationId:
-            # hide data plot
-
-            self.hide_data_files()
-            if dialog.MessageDialog(programName, "The current observation will be closed. Do you want to continue?",
-                                    [YES, NO]) == NO:
-
-                self.show_data_files()
-                return
-        '''
 
         result, selected_obs = self.selectObservations(SINGLE)
 
@@ -3678,14 +3667,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             '''
             # for receiving event resize and clicked (Zoom - crop)
             self.dw_player[i].view_signal.connect(self.signal_from_dw)
-
-
-            if self.config_param[DISPLAY_SUBTITLES]:
-                self.dw_player[i].mediaplayer.video_set_spu(0)
-            else:
-                self.dw_player[i].mediaplayer.video_set_spu(-1)
-
             '''
+
             # add durations list
             self.dw_player[i].media_durations = []
             # add fps list
@@ -3802,7 +3785,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.spectro.sb_freq_min.setValue(0)
             self.spectro.sb_freq_max.setValue(int(self.spectro.frame_rate / 2))
             self.spectro.show()
-            self.timer_sound_signal.start()
+            self.timer_sound_signal_out()
+            '''self.timer_sound_signal.start()'''
 
         # waveform
         if (VISUALIZE_WAVEFORM in self.pj[OBSERVATIONS][self.observationId] and
@@ -3846,7 +3830,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.waveform.sb_freq_max.setValue(int(self.waveform.frame_rate / 2))
             '''
             self.waveform.show()
-            self.timer_sound_signal.start()
+            self.timer_sound_signal_out()
+            '''self.timer_sound_signal.start()'''
 
         # external data plot
         if PLOT_DATA in self.pj[OBSERVATIONS][self.observationId] and self.pj[OBSERVATIONS][self.observationId][PLOT_DATA]:
@@ -7987,6 +7972,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 continue
             '''
             dw.player.frame_step()
+            self.timer_sound_signal_out()
 
             if self.geometric_measurements_mode:
                 self.extract_frame(dw)
@@ -8013,6 +7999,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 continue
             '''
             dw.player.frame_back_step()
+            self.timer_sound_signal_out()
 
             if self.geometric_measurements_mode:
                 self.extract_frame(dw)
