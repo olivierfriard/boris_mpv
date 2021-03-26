@@ -340,7 +340,7 @@
     <addaction name="actionShow_spectrogram"/>
     <addaction name="actionShow_the_sound_waveform"/>
     <addaction name="actionShow_data_files"/>
-    <addaction name="actionDistance"/>
+    <addaction name="action_geometric_measurements"/>
     <addaction name="actionBehaviors_coding_map"/>
     <addaction name="actionCoding_pad"/>
     <addaction name="actionSubjects_pad"/>
@@ -897,6 +897,9 @@
    <property name="text">
     <string>Frame by frame</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionAggregatedEventsTabularFormat">
    <property name="text">
@@ -964,7 +967,7 @@
     <string>Extract sequences from media files</string>
    </property>
   </action>
-  <action name="actionDistance">
+  <action name="action_geometric_measurements">
    <property name="text">
     <string>Geometric measurement</string>
    </property>

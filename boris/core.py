@@ -418,7 +418,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionSnapshot.setIcon(QIcon(":/snapshot"))
 
-        self.actionFrame_by_frame.setIcon(QIcon(":/frame_mode"))
+        '''self.actionFrame_by_frame.setIcon(QIcon(":/frame_mode"))'''
         self.actionFrame_backward.setIcon(QIcon(":/frame_backward"))
         self.actionFrame_forward.setIcon(QIcon(":/frame_forward"))
         self.actionCloseObs.setIcon(QIcon(":/close_observation"))
@@ -513,29 +513,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                             pn + (" - " * (pn != "")),
                                             programName))
 
-        # project menu
-        for w in [self.actionEdit_project, self.actionSave_project, self.actionSave_project_as, self.actionCheck_project,
+        # enabled if project loaded
+        for action in (self.actionEdit_project, self.actionSave_project, self.actionSave_project_as, self.actionCheck_project,
                   self.actionClose_project, self.actionSend_project, self.actionNew_observation,
                   self.actionRemove_path_from_media_files, self.action_obs_list, self.actionExport_observations_list,
-                  self.actionExplore_project, self.menuExport_events]:
-            w.setEnabled(flag)
+                  self.actionExplore_project, self.menuExport_events,
+                  self.actionLoad_observations_file, self.actionExportEvents_2, self.actionExport_aggregated_events):
+            action.setEnabled(flag)
 
         # observations
 
-        # enabled if observations
+        # enabled if project contain one or more observations
         for w in [self.actionOpen_observation, self.actionEdit_observation_2, self.actionView_observation,
                   self.actionObservationsList, self.action_obs_list]:
             w.setEnabled(self.pj[OBSERVATIONS] != {})
 
-        # enabled if observation
+        # enabled if current observation
         flagObs = self.observationId != ""
-
-        self.actionAdd_event.setEnabled(flagObs)
-        self.actionClose_observation.setEnabled(flagObs)
-        self.actionLoad_observations_file.setEnabled(flag)
-
-        self.actionExportEvents_2.setEnabled(flag)
-        self.actionExport_aggregated_events.setEnabled(flag)
+        for action in (self.actionAdd_event, self.actionClose_observation,
+                       self.actionDelete_all_observations, self.actionSelect_observations, self.actionDelete_selected_observations,
+                       self.actionEdit_event, self.actionEdit_event_time, self.actionCopy_events, self.actionPaste_events,
+                       self.actionFind_events, self.actionFind_replace_events,
+                       self.actionCloseObs, self.actionCurrent_Time_Budget,
+                       self.actionPlot_current_observation, self.actionFind_in_current_obs):
+            action.setEnabled(self.observationId != "")
 
         # self.actionExportEventString.setEnabled(flag)
         self.menuas_behavioural_sequences.setEnabled(flag)
@@ -545,54 +546,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionExtract_events_from_media_files.setEnabled(flag)
         self.actionExtract_frames_from_media_files.setEnabled(flag)
 
-        self.actionDelete_all_observations.setEnabled(flagObs)
-        self.actionSelect_observations.setEnabled(flagObs)
-        self.actionDelete_selected_observations.setEnabled(flagObs)
-        self.actionEdit_event.setEnabled(flagObs)
-        self.actionEdit_selected_events.setEnabled(flagObs)
-        self.actionEdit_event_time.setEnabled(flagObs)
-        self.actionCopy_events.setEnabled(flagObs)
-        self.actionPaste_events.setEnabled(flagObs)
-
-        self.actionFind_events.setEnabled(flagObs)
-        self.actionFind_replace_events.setEnabled(flagObs)
 
         self.actionCheckStateEvents.setEnabled(flag)
         self.actionCheckStateEventsSingleObs.setEnabled(flag)
         self.actionClose_unpaired_events.setEnabled(flag)
         self.actionRunEventOutside.setEnabled(flag)
 
-        self.actionMedia_file_information.setEnabled(flagObs)
-        self.actionMedia_file_information.setEnabled(self.playerType == VLC)
         self.menuCreate_subtitles_2.setEnabled(flag)
 
-        self.actionJumpForward.setEnabled(self.playerType == VLC)
-        self.actionJumpBackward.setEnabled(self.playerType == VLC)
-        self.actionJumpTo.setEnabled(self.playerType == VLC)
+        # enabled if media observation
+        for action in (self.actionMedia_file_information,
+                       self.actionJumpForward, self.actionJumpBackward, self.actionJumpTo,
+                       self.actionZoom_level, self.actionDisplay_subtitles,
+                       self.actionPlay, self.actionReset, self.actionFaster, self.actionSlower, self.actionNormalSpeed,
+                       self.actionPrevious, self.actionNext, self.actionSnapshot,
+                       self.actionFrame_backward, self.actionFrame_forward):
 
-        self.actionZoom_level.setEnabled(self.playerType == VLC)
-        self.actionDisplay_subtitles.setEnabled(self.playerType == VLC)
-
-        # toolbar
-        self.actionPlay.setEnabled(self.playerType == VLC)
-        self.actionPause.setEnabled(self.playerType == VLC)
-        self.actionReset.setEnabled(self.playerType == VLC)
-        self.actionFaster.setEnabled(self.playerType == VLC)
-        self.actionSlower.setEnabled(self.playerType == VLC)
-        self.actionNormalSpeed.setEnabled(self.playerType == VLC)
-        self.actionPrevious.setEnabled(self.playerType == VLC)
-        self.actionNext.setEnabled(self.playerType == VLC)
-        self.actionSnapshot.setEnabled(self.playerType == VLC)
-
-        self.actionFrame_by_frame.setEnabled(self.playerType == VLC)
-        self.actionFrame_by_frame.setVisible(False)
-
-        self.actionFrame_backward.setEnabled(flagObs)
-        self.actionFrame_forward.setEnabled(flagObs)
-
-        for w in [self.actionCloseObs, self.actionCurrent_Time_Budget,
-                  self.actionPlot_current_observation, self.actionFind_in_current_obs]:
-            w.setEnabled(flagObs)
+            action.setEnabled(self.playerType == VLC)
 
         # Tools
         self.actionShow_spectrogram.setEnabled(self.playerType == VLC)
@@ -604,7 +574,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionRemove_image_overlay.setEnabled(self.playerType == VLC)
         '''
         # geometric measurements
-        #self.actionDistance.setEnabled(flagObs and self.frame_mode)
+        self.action_geometric_measurements.setEnabled(flagObs and self.geometric_measurements_mode == False)
         self.actionCoding_pad.setEnabled(flagObs)
         self.actionSubjects_pad.setEnabled(flagObs)
         self.actionBehaviors_coding_map.setEnabled(flagObs)
@@ -721,7 +691,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionShow_spectrogram.triggered.connect(lambda: self.show_sound_signal_widget("spectrogram"))
         self.actionShow_the_sound_waveform.triggered.connect(lambda: self.show_sound_signal_widget("waveform"))
         self.actionShow_data_files.triggered.connect(self.show_data_files)
-        self.actionDistance.triggered.connect(self.geometric_measurements)
+        self.action_geometric_measurements.triggered.connect(self.geometric_measurements)
         self.actionBehaviors_coding_map.triggered.connect(self.show_behaviors_coding_map)
 
         self.actionCoding_pad.triggered.connect(self.show_coding_pad)
@@ -776,7 +746,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionSnapshot.triggered.connect(self.snapshot)
 
-        self.actionFrame_by_frame.triggered.connect(self.switch_playing_mode)
+        '''self.actionFrame_by_frame.triggered.connect(self.switch_playing_mode)'''
 
         self.actionFrame_backward.triggered.connect(self.previous_frame)
         self.actionFrame_forward.triggered.connect(self.next_frame)
@@ -2921,7 +2891,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         result, selected_obs = self.selectObservations(SINGLE)
 
         if selected_obs:
-            if result in [OPEN, VIEW, EDIT]:
+            if result in [OPEN, VIEW, EDIT] and self.observationId:
                 self.close_observation()
             if result == OPEN:
                 self.load_observation(selected_obs[0], "start")
@@ -3442,6 +3412,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 dw.stack.setCurrentIndex(0)
                 dw.setWindowTitle(f"Player #{n_player + 1}")
             self.measurement_w.close()
+            self.menu_options()
 
         def clear_measurements():
             '''
@@ -3450,13 +3421,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             '''
             pass
 
+        self.geometric_measurements_mode = True
+        self.menu_options()
+
         self.measurement_w = measurement_widget.wgMeasurement()
         self.measurement_w.draw_mem = {}
         self.measurement_w.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.measurement_w.closeSignal.connect(close_measurement_widget)
         self.measurement_w.clearSignal.connect(clear_measurements)
         self.measurement_w.show()
-        self.geometric_measurements_mode = True
+
 
         for n_player, dw in enumerate(self.dw_player):
             dw.setWindowTitle("geometric measurements")
@@ -7978,7 +7952,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 self.results.show()
 
-
+    '''
     def switch_playing_mode(self):
         """
         switch between frame mode (FFMPEG) and VLC mode
@@ -7994,116 +7968,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # go to frame mode
             self.next_frame()
             self.actionPlay.setIcon(QIcon(":/play"))
-            self.actionFrame_by_frame.setChecked(True)
+            # self.actionFrame_by_frame.setChecked(True)
 
         self.frame_mode = not self.frame_mode
 
         self.menu_options()
-
-        '''
-        if self.playMode == FFMPEG:  # return to VLC mode
-
-            self.playMode = VLC
-
-            globalCurrentTime = int(self.FFmpegGlobalFrame * (1000 / self.fps))
-
-            # set on media player end
-            currentMediaTime = int(sum(self.dw_player[0].media_durations))
-            for idx, media in enumerate(self.pj[OBSERVATIONS][self.observationId][FILE][PLAYER1]):
-                if globalCurrentTime < sum(self.dw_player[0].media_durations[0:idx + 1]):
-                    self.dw_player[0].mediaListPlayer.play_item_at_index(idx)
-                    while True:
-                        if self.dw_player[0].mediaListPlayer.get_state() in [self.vlc_playing, self.vlc_ended]:
-                            break
-                    self.dw_player[0].mediaListPlayer.pause()
-                    currentMediaTime = int(globalCurrentTime - sum(self.dw_player[0].media_durations[0:idx]))
-                    break
-
-            self.dw_player[0].mediaplayer.set_time(currentMediaTime)
-
-            self.timer_out()
-
-            for n_player, player in enumerate(self.dw_player):
-                if (str(n_player + 1) not in self.pj[OBSERVATIONS][self.observationId][FILE]
-                   or not self.pj[OBSERVATIONS][self.observationId][FILE][str(n_player + 1)]):
-                    continue
-                player.frame_viewer.clear()
-                player.stack.setCurrentIndex(0)
-
-            self.FFmpegTimer.stop()
-
-            logging.info("ffmpeg timer stopped")
-
-            # stop thread for cleaning temp directory
-            if self.config_param.get(SAVE_FRAMES, DISK) == DISK and self.ffmpeg_cache_dir_max_size:
-                self.cleaningThread.exiting = True
-
-        # go to frame by frame mode
-        elif self.playMode == VLC:
-
-            # FIXME check if FPS are compatible for frame-by-frame mode
-
-            all_fps = []
-            for i, player in enumerate(self.dw_player):
-                if (str(i + 1) in self.pj[OBSERVATIONS][self.observationId][FILE] and
-                        self.pj[OBSERVATIONS][self.observationId][FILE][str(i + 1)]):
-                    all_fps.extend(list(player.fps.values()))
-
-            if len(set(all_fps)) != 1:
-                logging.warning("The frame-by-frame mode will not be available because the video files have different frame rates")
-                QMessageBox.warning(self, programName, ("The frame-by-frame mode will not be available"
-                                                        " because the video files have different frame rates ({})."
-                                                        ).format(", ".join(map(str, all_fps))),
-                                    QMessageBox.Ok | QMessageBox.Default,
-                                    QMessageBox.NoButton)
-                self.actionFrame_by_frame.setChecked(False)
-                return
-
-
-            self.pause_video()
-            self.playMode = FFMPEG
-
-            # make visible frame viewer(s)
-            for player in self.dw_player:
-                player.stack.setCurrentIndex(1)
-
-            # check temp dir for images from ffmpeg
-            self.imageDirectory = self.ffmpeg_cache_dir if self.ffmpeg_cache_dir and os.path.isdir(self.ffmpeg_cache_dir) else tempfile.gettempdir()
-
-            globalTime = (sum(
-                self.dw_player[0].media_durations[0:self.dw_player[0].media_list.
-                                                  index_of_item(self.dw_player[0].
-                                                                mediaplayer.get_media())]) +
-                          self.dw_player[0].mediaplayer.get_time())
-
-            self.fps = all_fps[0]
-
-            globalCurrentFrame = round(globalTime / (1000 / self.fps))
-
-            self.FFmpegGlobalFrame = globalCurrentFrame
-
-            if self.FFmpegGlobalFrame > 0:
-                self.FFmpegGlobalFrame -= 1
-
-            self.ffmpeg_timer_out()
-
-            # set thread for cleaning temp directory
-            if self.config_param.get(SAVE_FRAMES, DEFAULT_FRAME_MODE) == DISK and self.ffmpeg_cache_dir_max_size:
-                self.cleaningThread.exiting = False
-                self.cleaningThread.ffmpeg_cache_dir_max_size = self.ffmpeg_cache_dir_max_size * 1024 * 1024
-                self.cleaningThread.tempdir = self.imageDirectory + os.sep
-                self.cleaningThread.start()
-
-        '''
-
-        # enable/disable speed button
-        '''
-        self.actionNormalSpeed.setEnabled(self.playMode == VLC)
-        self.actionFaster.setEnabled(self.playMode == VLC)
-        self.actionSlower.setEnabled(self.playMode == VLC)
-
-        logging.info(f"new play mode: {self.playMode}")
-        '''
+    '''
 
 
     def next_frame(self):
@@ -9631,9 +9501,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ek in [Qt.Key_Tab, Qt.Key_Shift, Qt.Key_Control, Qt.Key_Meta, Qt.Key_Alt, Qt.Key_AltGr]:
             return
 
+        '''
         if ek == Qt.Key_Escape:
             self.switch_playing_mode()
             return
+        '''
 
         # speed down
         if ek == Qt.Key_End:
@@ -10900,7 +10772,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 data_timer.start()
 
             self.actionPlay.setIcon(QIcon(":/pause"))
-            self.actionFrame_by_frame.setChecked(False)
+            '''self.actionFrame_by_frame.setChecked(False)'''
             self.frame_mode = False
 
             return True
