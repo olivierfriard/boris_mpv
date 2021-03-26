@@ -2905,16 +2905,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.playerType == VIEWER:
             self.close_observation()
 
+        '''
         # check if an observation is running
         if self.observationId:
             # hide data plot
-            
+
             self.hide_data_files()
             if dialog.MessageDialog(programName, "The current observation will be closed. Do you want to continue?",
                                     [YES, NO]) == NO:
 
                 self.show_data_files()
                 return
+        '''
 
         result, selected_obs = self.selectObservations(SINGLE)
 
