@@ -3882,7 +3882,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.ext_data_timer_list[-1].setInterval(w1.time_out)
                     self.ext_data_timer_list[-1].timeout.connect(lambda: self.timer_plot_data_out(w1))
                     self.timer_plot_data_out(w1)
-                    # self.ext_data_timer_list[-1].start()
 
                     self.plot_data[count] = w1
 
@@ -3926,7 +3925,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.ext_data_timer_list[-1].setInterval(w2.time_out)
                     self.ext_data_timer_list[-1].timeout.connect(lambda: self.timer_plot_data_out(w2))
                     self.timer_plot_data_out(w2)
-                    # self.ext_data_timer_list[-1].start()
 
                     self.plot_data[count] = w2
 
@@ -3955,7 +3953,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for n_player in range(1, len(self.dw_player)):
                 self.sync_time(n_player, 0)
 
-
         return True
 
 
@@ -3965,6 +3962,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         triggered by timers in self.ext_data_timer_list
         """
         w.update_plot(self.getLaps())
+
 
     def signal_from_widget(self, event):
         """
@@ -7937,50 +7935,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 self.results.show()
 
-    '''
-    def switch_playing_mode(self):
-        """
-        switch between frame mode (FFMPEG) and VLC mode
-        triggered by frame by frame button and toolbox item change
-        """
-
-        if self.playerType != VLC:
-            return
-
-        if self.frame_mode:
-            self.actionFrame_by_frame.setChecked(False)
-        else:
-            # go to frame mode
-            self.next_frame()
-            self.actionPlay.setIcon(QIcon(":/play"))
-            # self.actionFrame_by_frame.setChecked(True)
-
-        self.frame_mode = not self.frame_mode
-
-        self.menu_options()
-    '''
-
 
     def next_frame(self):
         """
         show next frame
         """
         for n_player, dw in enumerate(self.dw_player):
-            '''
-            if (str(n_player + 1) not in self.pj[OBSERVATIONS][self.observationId][FILE]
-                or not self.pj[OBSERVATIONS][self.observationId][FILE][str(n_player + 1)]):
-                continue
-            '''
             dw.player.frame_step()
             self.timer_sound_signal_out()
+            for idx in self.plot_data:
+                self.timer_plot_data_out(self.plot_data[idx])
 
             if self.geometric_measurements_mode:
                 self.extract_frame(dw)
-                '''
-                qim = ImageQt(dw.player.screenshot_raw())
-                pixmap = QPixmap.fromImage(qim)
-                dw.frame_viewer.setPixmap(pixmap.scaled(dw.frame_viewer.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
-                '''
 
         if self.geometric_measurements_mode:
             self.redraw_measurements()
@@ -7993,13 +7960,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         show previous frame
         """
         for n_player, dw in enumerate(self.dw_player):
-            '''
-            if (str(n_player + 1) not in self.pj[OBSERVATIONS][self.observationId][FILE]
-                or not self.pj[OBSERVATIONS][self.observationId][FILE][str(n_player + 1)]):
-                continue
-            '''
             dw.player.frame_back_step()
             self.timer_sound_signal_out()
+            for idx in self.plot_data:
+                self.timer_plot_data_out(self.plot_data[idx])
 
             if self.geometric_measurements_mode:
                 self.extract_frame(dw)
@@ -8019,32 +7983,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.pj[OBSERVATIONS][self.observationId][TYPE] in [MEDIA]:
 
             if self.playerType == VLC:
-                '''
-                if self.playMode == FFMPEG:
-                    for n_player, player in enumerate(self.dw_player):
-                        if (str(n_player + 1) not in self.pj[OBSERVATIONS][self.observationId][FILE]
-                           or not self.pj[OBSERVATIONS][self.observationId][FILE][str(n_player + 1)]):
-                            continue
 
-                        for idx, media in enumerate(self.pj[OBSERVATIONS][self.observationId][FILE][str(n_player + 1)]):
-                            if self.FFmpegGlobalFrame < sum(player.media_durations[0:idx + 1]):
-                                p = pathlib.Path(media)
-                                snapshot_file_path = str(p.parent / f"{p.stem}_{self.FFmpegGlobalFrame}.png")
-                                player.frame_viewer.pixmap().save(snapshot_file_path)
-                                self.statusbar.showMessage(f"Snapshot player #1 saved in {snapshot_file_path}", 0)
-                                break
-                '''
-                if self.playMode == MPV:
+                for i, player in enumerate(self.dw_player):
+                    if (str(i + 1) in self.pj[OBSERVATIONS][self.observationId][FILE] and
+                            self.pj[OBSERVATIONS][self.observationId][FILE][str(i + 1)]):
 
-                    for i, player in enumerate(self.dw_player):
-                        if (str(i + 1) in self.pj[OBSERVATIONS][self.observationId][FILE] and
-                                self.pj[OBSERVATIONS][self.observationId][FILE][str(i + 1)]):
+                        p = pathlib.Path(self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"])
 
-                            p = pathlib.Path(self.dw_player[0].player.playlist[self.dw_player[0].player.playlist_pos]["filename"])
+                        snapshot_file_path = str(p.parent / f"{p.stem}_{player.player.time_pos}.png")
 
-                            snapshot_file_path = str(p.parent / f"{p.stem}_{player.player.time_pos}.png")
-
-                            player.player.screenshot_to_file(snapshot_file_path)
+                        player.player.screenshot_to_file(snapshot_file_path)
 
 
     def zoom_level(self):
@@ -8692,7 +8640,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.dw_player[idx].mediaplayer.video_set_logo_int(0, 1)
 
         except Exception:
-            logging.critical("error in add_image_overlay function")
+            logging.debug("error in add_image_overlay function")
 
 
     def remove_image_overlay(self):
@@ -9154,7 +9102,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 modifier_str = ""
 
                 if event["modifiers"]:
-
 
                     selected_modifiers, modifiers_external_data = {}, {}
                     # check if modifiers are from external data
